@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <modeltable id="testTable" width="800px" height="100%" tableName="B_ANALYSIS" dataSource="oracle">
+      <view><![CDATA[
+        select rownum,
+     c.*
+     from (
+     select
+       distinct
+       b.crop_name,
+       sum(b.volume) over(partition by to_char(b.time, 'YYYY'),b.crop_name) as volume,
+       avg(b.price) over(partition by to_char(b.time, 'YYYY'),b.crop_name) as avgPrice,
+       pre.avgPrice as preAvgPrice,
+       (avg(b.price) over(partition by to_char(b.time, 'YYYY'),b.crop_name) - pre.avgPrice)/pre.avgPrice as changeRandge,                
+       b.unit,
+       b.market,
+       b.information,
+       to_char(b.time, 'YYYY') as tt
+     from B_ANALYSIS b,(
+       select
+         crop_name,
+         avg(price) over(partition by to_char(time, 'YYYY'),crop_name) as avgPrice,    
+         unit,
+         market,
+         information,
+         to_char(time, 'YYYY') as tt
+       from B_ANALYSIS
+        where market = '广西南宁五里亭蔬菜批发市场'
+      ) pre
+      where b.market = '广西南宁五里亭蔬菜批发市场'
+      and b.crop_name = pre.crop_name
+      and to_char(add_months(b.time, -12), 'YYYY') = pre.tt
+     ) c
+     where c.tt = '2015'
+      ]]>
+      </view>
+      <target name="rownum" dataType="num" sort="true" label="序号">rownum</target>
+      <target name="cropName" dataType="str" sort="true" label="名称">crop_name</target>
+	  <target name="avgPrice" dataType="num" label="本年平均价格" sort="true" format=".##">avgPrice</target>
+	  <target name="PreviousDayPrice" dataType="num" label="上年平均价格" format=".##">PreAvgPrice</target>
+	  <target name="changeRandge" dataType="num" label="涨跌幅度" sort="true" format="##%">changeRandge</target>
+	  <target name="volume" dataType="num" label="成交量" sort="true" format="##">volume</target>
+      <target name="unit" dataType="str" label="计量单位">unit</target>	  
+      <target name="market" dataType="str" label="交易地">market</target>
+      <target name="time" dataType="str" label="时间">tt</target>
+  </modeltable>

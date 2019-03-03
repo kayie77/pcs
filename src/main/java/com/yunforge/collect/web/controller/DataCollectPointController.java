@@ -1,0 +1,206 @@
+package com.yunforge.collect.web.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yunforge.base.model.Division;
+import com.yunforge.base.service.DivisionManager;
+import com.yunforge.collect.dto.MessageObject;
+import com.yunforge.collect.dto.TreeNode;
+import com.yunforge.collect.jackson.mixin.DataCollectCategoryMixin;
+import com.yunforge.collect.jackson.mixin.DataCollectPointMixin;
+import com.yunforge.collect.model.DataCollectCategory;
+import com.yunforge.collect.model.DataCollectPerson;
+import com.yunforge.collect.model.DataCollectPoint;
+import com.yunforge.collect.service.DataCollectCategoryManager;
+import com.yunforge.collect.service.DataCollectPointManager;
+import com.yunforge.srpingside.Servlets;
+
+@Controller
+@RequestMapping("/collect")
+public class DataCollectPointController {
+	
+	@Autowired 
+	private DataCollectCategoryManager dccManager;
+	
+	@Autowired 
+	private DataCollectPointManager dcpManager;
+	
+	@Autowired
+	private DivisionManager divisionManager;
+	
+	private static final ObjectMapper objectMapper = new ObjectMapper();
+	
+	/**************** view controller*******************/	
+	
+	//管理界面
+	@RequestMapping(value="/dataCollectPoint/manager", method=RequestMethod.GET)
+	public String DataCollectPointView() {
+		return "collect/dataCollectPoint/dataCollectPointManager";
+	}
+	
+	//采集点分布地图
+	@RequestMapping(value="/dataCollectPoint/map", method=RequestMethod.GET)
+	public String mapView(){
+		return "collect/dataCollectPoint/map";
+	}
+	
+	//单个采集点地理位置
+	@RequestMapping(value="/dataCollectPoint/singlePoint", params="id", method=RequestMethod.GET)
+	public String singlePointMapView(@RequestParam String id, ModelMap model){
+		DataCollectPoint dataCollectPoint = dcpManager.getDataCollectPoint(id);
+		
+		//采集人信息，用逗号隔开
+		String result = "";
+		StringBuffer dataCollectPersons = new StringBuffer();
+		List<DataCollectPerson> dataCollectPersonList = dataCollectPoint.getDataCollectPersons();
+		if(dataCollectPersonList != null && dataCollectPersonList.size() != 0) {
+			for(int i = 0;i < dataCollectPersonList.size();i++) {
+				dataCollectPersons.append(dataCollectPersonList.get(i).getName()).append(",");
+			}
+		}
+		if(dataCollectPersons.length() != 0) {
+			result = dataCollectPersons.toString().substring(0,dataCollectPersons.length() - 1);
+		}
+
+		model.addAttribute("result", result);
+		model.addAttribute("dataCollectPoint", dataCollectPoint);
+		return "collect/dataCollectPoint/singlePointMap";
+	}
+	
+	//根据采集点分类获得其所有采集点地理位置
+	@RequestMapping(value="/dataCollectPoint/allPoint", params="dpId", method=RequestMethod.GET)
+	public String allPointMapView(@RequestParam String dpId, ModelMap model){
+		List<DataCollectPoint> dcpList = dcpManager.getAllDataCollectPointByCtgId(dpId);
+		model.addAttribute("dcpList", dcpList);
+		return "collect/dataCollectPoint/allPointMap";
+	}
+	
+	//新增表单
+	@RequestMapping(value="/dataCollectPoint/view/new", params="ctgId", method=RequestMethod.GET)
+	public String newDataCollectPointView(@RequestParam String ctgId, ModelMap model) {
+		DataCollectPoint dataCollectPoint = new DataCollectPoint();
+		List<Division> divisionList  = divisionManager.findCityDivision();
+
+		model.addAttribute("ctgId", ctgId);
+		model.addAttribute("divisionList", divisionList);
+		model.addAttribute("dataCollectPoint", dataCollectPoint);
+		return "collect/dataCollectPoint/dataCollectPointForm";
+	}
+	
+	//编辑表单
+	@RequestMapping(value="/dataCollectPoint/view/edit", params="id", method=RequestMethod.GET)
+	public String editDataCollectPointView(@RequestParam String id, ModelMap model) {
+		DataCollectPoint dataCollectPoint = dcpManager.getDataCollectPoint(id);
+		List<Division> divisionList  = divisionManager.findCityDivision();
+		
+		model.addAttribute("ctgId", dataCollectPoint.getDataCollectCategory().getId());
+		model.addAttribute("divisionList", divisionList);
+		model.addAttribute("dataCollectPoint", dataCollectPoint);
+		return "collect/dataCollectPoint/dataCollectPointForm";
+	}
+	
+	//查看视图
+	@RequestMapping(value="/dataCollectPoint/view/detail", params="id", method=RequestMethod.GET)
+	public String viewDataCollectPointView(@RequestParam String id, ModelMap model) {
+		DataCollectPoint dataCollectPoint = dcpManager.getDataCollectPoint(id);
+		model.addAttribute("ctgName", dataCollectPoint.getDataCollectCategory().getName());
+		model.addAttribute("dataCollectPoint", dataCollectPoint);
+		return "collect/dataCollectPoint/dataCollectPointDetail";
+	}
+	
+	/**************** data controller*******************/
+	
+	//获取采集点分类
+	@RequestMapping(value="/dataCollectPointTreeNode")
+	public @ResponseBody List<TreeNode> getDataCollectPointTreeNode() throws JsonProcessingException {
+		return dccManager.getDataCollectCategoryTreeNode();
+	}
+	
+	//获取采集点信息
+	@RequestMapping(value="/dataCollectPoint", method=RequestMethod.GET, produces="application/json; charset=utf-8")
+	public @ResponseBody String getDataCollectPointByCtg(@RequestParam("ctgId") String ctgId,ServletRequest request, Pageable pageable){
+		Map<String, Object> searchParams = Servlets.getParametersStartingWith(request, "search_");
+		objectMapper.addMixInAnnotations(DataCollectCategory.class, DataCollectCategoryMixin.BasicInfo.class);
+		objectMapper.addMixInAnnotations(DataCollectPoint.class, DataCollectPointMixin.BasicInfo.class);
+		
+		Page<DataCollectPoint> page =  dcpManager.getDataCollectPoint(ctgId, searchParams, pageable);
+		try {
+			return objectMapper.writeValueAsString(page);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	//新增
+	@RequestMapping(value="/dataCollectPoint", method=RequestMethod.POST, produces="application/json; charset=utf-8")
+	@ResponseBody
+	public String saveDataCollectPoint(@RequestBody DataCollectPoint dataCollectPoint) throws JsonProcessingException {
+		objectMapper.addMixInAnnotations(DataCollectPoint.class, DataCollectPointMixin.BasicInfo.class);
+		MessageObject messageObject = new MessageObject();
+		DataCollectPoint saveDataCollectPoint;
+		try {	
+			saveDataCollectPoint = dcpManager.newDataCollectPoint(dataCollectPoint);
+			messageObject.setData(saveDataCollectPoint);
+			messageObject.setMessage("保存成功!");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			messageObject.setMessage("保存失败!"+e.getMessage());
+		}
+		return objectMapper.writeValueAsString(messageObject);
+	}
+	
+	//在地图中保存地理位置信息
+	//编辑填报数据值
+	@RequestMapping(value="/dataCollectPoint/map", params={"id","lng","lat","address"}, method=RequestMethod.POST)
+	@ResponseBody
+	public MessageObject saveMap(@RequestParam String id,@RequestParam double lng,@RequestParam double lat,@RequestParam String address) {
+		MessageObject messageObject = new MessageObject();
+		try {
+			dcpManager.saveMapData(id, lng, lat, address);
+			messageObject.setMessage("保存成功!");
+			messageObject.setStatus(true);
+		} catch (Exception e) {
+			// TODO: handle exception
+			messageObject.setMessage("保存失败!" + e.getMessage());
+			messageObject.setStatus(false);
+		}
+		return messageObject;
+	}
+	
+	//删除
+	@RequestMapping(value="/dataCollectPoint", params="del", method=RequestMethod.POST)
+	@ResponseBody
+	public MessageObject delDataCollectPoint(@RequestParam("id") String[] id) {
+		MessageObject messageObject = new MessageObject();
+		try {
+			dcpManager.delDataCollectPoints(id);
+			messageObject.setMessage("删除成功!");
+			messageObject.setStatus(true);
+		} catch (Exception e) {
+			// TODO: handle exception
+			messageObject.setMessage("删除失败!" + e.getMessage());
+			messageObject.setStatus(false);
+		}
+		return messageObject;
+	}
+
+}

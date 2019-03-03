@@ -1,0 +1,1 @@
+<script src="${ctx}/assets/js/common/shim.js"></script>

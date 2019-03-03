@@ -1,0 +1,20 @@
+package com.yunforge.collect.dao;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+
+import com.yunforge.collect.model.DataCollectIndex;
+import com.yunforge.collect.model.DataCollectPoint;
+
+public interface DataCollectIndexDao extends JpaRepository<DataCollectIndex, String>,JpaSpecificationExecutor<DataCollectIndex>{
+	
+	@Query(" from DataCollectIndex dci order by dci.indexCode ")
+	public List<DataCollectIndex> findAllOrderByIndexCode();
+
+	@Query(" from DataCollectIndex dci where dci.indexCode = ?1 ")
+	public List<DataCollectIndex> findByIndexCode(String indexCode);
+	
+}

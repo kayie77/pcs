@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modeltable width="400px" high="800px" tableName="B_ANALYSIS" dataSource="oracle">
+<view><![CDATA[
+select rownum,
+     c.*
+     from (
+     select distinct
+       b.crop_name,
+       avg(b.price) over(partition by to_char(b.time, 'YYYY-MM'),b.crop_name) as avgPrice,
+       pre.avgPrice as preAvgPrice,
+       trunc((avg(b.price) over(partition by to_char(b.time, 'YYYY-MM'),b.crop_name) - pre.avgPrice)/pre.avgPrice*100,2)as changeRandge,                
+       to_char(b.time, 'YYYY-MM') as tt
+     from B_ANALYSIS b,(
+       select
+         crop_name,
+         avg(price) over(partition by to_char(time, 'yyyy-mm'),crop_name) as avgPrice,    
+         unit,
+         market,
+         information,
+         to_char(time, 'YYYY-MM') as tt
+       from B_ANALYSIS
+        where market = '广西南宁五里亭蔬菜批发市场'
+      ) pre
+      where b.market = '广西南宁五里亭蔬菜批发市场'
+      and b.crop_name = pre.crop_name
+      and to_char(add_months(b.time, -1), 'YYYY-MM') = pre.tt
+     ) c
+     where c.tt = '2015-12'
+
+]]></view>
+	<target  name="changeRandge" dataType="num" sort="true" format="0.00" label="涨跌幅度">changeRandge
+</target>
+	<headDimension>
+		<dimension name="crop">crop_name</dimension>
+	</headDimension>
+	<sideDimension>
+		<dimension name="market" label="交易地"  sort="true">market</dimension>
+	</sideDimension>
+	
+</modeltable>

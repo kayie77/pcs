@@ -1,0 +1,113 @@
+package com.yunforge.support.sql;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class NativeSql {
+	public static final class MODEL{
+		public static final int ADD_COLUMN = 1;
+		public static final int DROP_COLUMN = 2;
+		public static final int MODIFY_COLUMN = 3;
+	}
+	
+	public static String dropTable(String tableName) {
+		StringBuilder tableDDL = new StringBuilder("drop table ");
+		tableDDL.append(tableName);
+		return tableDDL.toString();
+	}
+	
+	
+	public static String delRow(String tableName, String columnId) {
+		StringBuilder tableDDL = new StringBuilder("delete from ");
+		tableDDL.append(tableName);
+		tableDDL.append(" where id = '");
+		tableDDL.append(columnId);
+		tableDDL.append("'");
+		return tableDDL.toString();
+	}
+	
+	public static String selectRow(String tableName, String columnId) {
+		StringBuilder tableDDL = new StringBuilder("select * from ");
+		tableDDL.append(tableName);
+		tableDDL.append(" where id = '");
+		tableDDL.append(columnId);
+		tableDDL.append("'");
+		return tableDDL.toString();
+	}
+	
+	public static String findAllByFilter(String tableName, Collection<NativeSearchFilter> filters) {
+		if (filters.size() <= 0) {
+			return tableName; //没有条件 直接返回
+		}
+		
+		StringBuilder tableDDL = new StringBuilder(selectAll(tableName));
+		tableDDL.append(" temp__ where ").append(filter(filters));
+		return tableDDL.toString();
+	}
+	
+	public static String filter(Collection<NativeSearchFilter> filters){
+		StringBuilder tableDDL = new StringBuilder("");
+		int index = 1;
+		for (NativeSearchFilter filter : filters) {
+			// nested path translate, 如Task的名为"user.name"的filedName, 转换为Task.user.name属性
+			String filed = filter.fieldName;
+			
+			// logic operator
+			String op = null;
+			switch (filter.operator) {
+			case EQ:
+				op = " = ";
+				break;
+			case LIKE:
+				op = " like ";
+				break;
+			case GT:
+				op = " > ";
+				break;
+			case LT:
+				op = " < ";
+				break;
+			case GTE:
+				op = " >= ";
+				break;
+			case LTE:
+				op = " <= ";
+				break;
+			default:
+				//do nothing
+				break;
+			}
+			
+			String cond = filed + op + "?"+index;
+			if(index != 1){
+				tableDDL.append(" and ");
+			}
+			tableDDL.append(cond);
+			index++;
+		}
+		return tableDDL.toString();
+	}
+	
+	public static String selectAll(String tableName) {
+		return "select * from (" + tableName + ")";
+	}
+	
+	public static String count(String sourceSql) {
+		return "select count(*) from (" + sourceSql + ")";
+	}
+	
+	public static String wrapCondition(String sourceSql, String condStr) {
+		String sql = sourceSql;
+		if (StringUtils.isNotBlank(condStr)) {
+			sql = "select * from (" + sourceSql + ") where " + condStr;
+		}
+		return sql;
+	}
+	
+}

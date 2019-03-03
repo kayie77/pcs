@@ -1,0 +1,168 @@
+package com.yunforge.collect.model;
+
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.yunforge.collect.jackson.serializer.CustomJsonDateSerializer;
+import com.yunforge.collect.jackson.serializer.ReportedTypeSerializer;
+
+@Entity
+@Table(name = "Data_reoprted")
+public class Reoprted {
+
+	@Id
+	@GeneratedValue(generator = "system-uuid")
+	@Column(name="ID", nullable = false, updatable = false, length = 100)
+	private String id;
+	
+	@ManyToOne(fetch=FetchType.LAZY, optional = false)
+	@JoinColumn(name = "DATACOLLECTPOINTID") 
+	private DataCollectPoint dataCollectPoint;//监测点外键
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name="DATADATE")
+	@JsonSerialize(using = CustomJsonDateSerializer.class)
+	private Date dataDate; //数据日期
+	
+	@Column(name="REGIONID",length = 100)
+	private String regionid; //所属地市
+	
+	@JsonSerialize(using = ReportedTypeSerializer.class)
+	@Column(name="REPORTEDTYPE",updatable = false,length = 100)
+	private String reportedtype; //上报类型
+	
+	@Column(name="YIELD")
+	private Double yield; //产量
+	
+	@Column(name="SALECOUNT")
+	private Double salecount; //销量
+	
+	@Column(name="WHOLESALEPRICE")
+	private Double wholesaleprice; //批发价
+	
+	@Column(name="HEGHESTPRICE")
+	private Double heghestprice; //市场最高价
+	
+	@Column(name="LOWESTPRICE")
+	private Double lowestprice; //市场最低价
+	
+	@Column(name="AVGPRICE")
+	private Double avgprice; //市场平均价
+	
+	@Column(name="STAPLEPRICE")
+	private Double stapleprice; //大宗价
+	
+	public static final class REPORTEDTYPE{
+		public static final int DAILY  = 1;//日报
+		public static final int WEEKLY = 2;//周报
+		public static final int MONTHLY = 3;//月报
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public DataCollectPoint getDataCollectPoint() {
+		return dataCollectPoint;
+	}
+
+	public void setDataCollectPoint(DataCollectPoint dataCollectPoint) {
+		this.dataCollectPoint = dataCollectPoint;
+	}
+
+	public Date getDataDate() {
+		return dataDate;
+	}
+
+	public void setDataDate(Date dataDate) {
+		this.dataDate = dataDate;
+	}
+
+	public String getRegionid() {
+		return regionid;
+	}
+
+	public void setRegionid(String regionid) {
+		this.regionid = regionid;
+	}
+
+	public String getReportedtype() {
+		return reportedtype;
+	}
+
+	public void setReportedtype(String reportedtype) {
+		this.reportedtype = reportedtype;
+	}
+
+	public Double getYield() {
+		return yield;
+	}
+
+	public void setYield(Double yield) {
+		this.yield = yield;
+	}
+
+	public Double getSalecount() {
+		return salecount;
+	}
+
+	public void setSalecount(Double salecount) {
+		this.salecount = salecount;
+	}
+
+	public Double getWholesaleprice() {
+		return wholesaleprice;
+	}
+
+	public void setWholesaleprice(Double wholesaleprice) {
+		this.wholesaleprice = wholesaleprice;
+	}
+
+	public Double getHeghestprice() {
+		return heghestprice;
+	}
+
+	public void setHeghestprice(Double heghestprice) {
+		this.heghestprice = heghestprice;
+	}
+
+	public Double getLowestprice() {
+		return lowestprice;
+	}
+
+	public void setLowestprice(Double lowestprice) {
+		this.lowestprice = lowestprice;
+	}
+
+	public Double getAvgprice() {
+		return avgprice;
+	}
+
+	public void setAvgprice(Double avgprice) {
+		this.avgprice = avgprice;
+	}
+
+	public Double getStapleprice() {
+		return stapleprice;
+	}
+
+	public void setStapleprice(Double stapleprice) {
+		this.stapleprice = stapleprice;
+	}
+
+}

@@ -1,0 +1,86 @@
+package com.yunforge.api.cms;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yunforge.api.dto.ApiDTO;
+import com.yunforge.collect.jackson.mixin.DataReoprtedDetailMixin;
+import com.yunforge.collect.jackson.mixin.DataReoprtedMainMixin;
+import com.yunforge.collect.model.DataCollectIndex;
+import com.yunforge.collect.model.DataReoprtedDetail;
+import com.yunforge.collect.model.DataReoprtedMain;
+import com.yunforge.collect.service.DataCollectIndexManager;
+import com.yunforge.collect.service.DataReoprtedDetailManager;
+import com.yunforge.core.annotation.MethodRemark;
+import com.yunforge.core.web.controller.BaseController;
+
+@Controller
+public class ReportedApiController extends BaseController  {
+	
+	final static Log log = LogFactory.getLog(ReportedApiController.class);
+	
+	private static final ObjectMapper objectMapper = new ObjectMapper();
+	
+	@Autowired 
+	private DataReoprtedDetailManager dataReoprtedDetailManager;
+	
+	@Autowired
+	private DataCollectIndexManager dataCollectIndexManager;
+	
+	//获取任务填报明细
+	@MethodRemark(remark = "获取任务填报明细")
+	@RequestMapping(value = "/api/cms/dataReoprtedDetail/manager",params="dmId", produces="application/json; charset=utf-8")
+	public  @ResponseBody String DataReoprtedDetailView(@RequestParam String dmId, ModelMap model) {
+		List<DataReoprtedDetail> drlist =  dataReoprtedDetailManager.getDataReoprtedDetailByDmId(dmId);
+		List<DataCollectIndex> dclist =  dataCollectIndexManager.findAllOrderByIndexCode();
+		objectMapper.addMixInAnnotations(DataReoprtedDetail.class, DataReoprtedDetailMixin.BasicInfo.class);
+		//指标code与name之间的转换
+		dataReoprtedDetailManager.convertedIndexNameByCode(drlist,dclist);
+		//json转换
+		ApiDTO apiDTO = new ApiDTO();
+		apiDTO.setCode("1");
+		apiDTO.setData(drlist);
+		apiDTO.setMsg("操作成功！");
+		
+		try {
+			return objectMapper.writeValueAsString(apiDTO);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	//保存任务填报明细
+	@MethodRemark(remark = "保存任务填报明细")
+	@RequestMapping(value = "/api/cms/dataReoprtedDetail", params={"id","data"}, produces="application/json; charset=utf-8")
+	public  @ResponseBody String DataReoprtedDetailView(@RequestParam("id") String[] id,@RequestParam("data") String[] data) {
+		ApiDTO apiDTO = new ApiDTO();
+		try {
+			dataReoprtedDetailManager.saveReoprtedDetailData(id, data);
+			apiDTO.setCode("1");
+			apiDTO.setMsg("修改成功！");
+		} catch (Exception e) {
+			apiDTO.setCode("0");
+			apiDTO.setMsg("修改失败！");
+		}
+		try {
+			return objectMapper.writeValueAsString(apiDTO);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+}

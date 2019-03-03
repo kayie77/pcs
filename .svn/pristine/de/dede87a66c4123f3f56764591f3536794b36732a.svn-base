@@ -1,0 +1,227 @@
+package com.yunforge.base.model;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.yunforge.common.util.DateUtil;
+import com.yunforge.core.model.IEntity;
+
+@Entity
+@Table(name = "oper_NOTICE")
+public class Notice implements IEntity<String> {
+	private static final long serialVersionUID = 1L;
+	public static final Integer STATUS_PUBLISH = 1;
+	public static final Integer STATUS_UNPUBLISH = 2;
+	public static final Integer STATUS_DELETE = 0;
+
+	@Id
+	@GeneratedValue(generator = "system-uuid")
+	@Column(nullable = false, updatable = false, length = 64)
+	private String id;
+
+	@Column(name = "title")
+	private String title;
+	
+	@Column(name = "ntcontent")
+	private String ntcontent;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "createdate")
+	private Date createdate;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "modifydate")
+	private Date modifydate;
+
+	@Column(name = "status")
+	private Integer status;
+
+	@Column(name = "divcode")
+	private String divcode;
+	
+	@Transient
+	private String createdateStr;
+	
+	@Transient
+	private String statusStr;
+
+	@Transient
+	private String divIdStr;
+	
+	@Transient
+	private String readflag;
+
+	@JsonIgnore
+	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "notice", orphanRemoval = true)
+	private List<NoticeDivision> noticeDivisionList = new ArrayList<NoticeDivision>();
+//	@Transient
+//	private String contentStr;
+	
+	@Transient
+	private Date readdate;
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Notice other = (Notice) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (id != other.id) {
+			return false;
+		}
+		return true;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public Date getCreatedate() {
+		return createdate;
+	}
+
+	public void setCreatedate(Date createdate) {
+		this.createdate = createdate;
+	}
+
+	public Date getModifydate() {
+		return modifydate;
+	}
+
+	public void setModifydate(Date modifydate) {
+		this.modifydate = modifydate;
+	}
+
+	public Integer getStatus() {
+		return status;
+	}
+
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+
+//	public String getDivcode() {
+//		return divcode;
+//	}
+//
+//	public void setDivcode(String divcode) {
+//		this.divcode = divcode;
+//	}
+
+	public String getCreatedateStr() {
+		return DateUtil.formatDate(createdate, "yyyy-MM-dd");
+//		return creatdateStr;
+	}
+
+	public void setCreatedateStr(String createdateStr) {
+		this.createdateStr = createdateStr;
+	}
+
+	public String getStatusStr() {
+		if(status != null) {
+			if(status.toString().equals("1")) {
+				return "发布";
+			} else if(status.toString().equals("2")) {
+				return "未发布";
+			} else if(status.toString().equals("0")) {
+				return "删除";
+			}
+		}
+		return statusStr;
+	}
+
+	public void setStatusStr(String statusStr) {
+		this.statusStr = statusStr;
+	}
+
+	public String getDivIdStr() {
+		return divIdStr;
+	}
+
+	public void setDivIdStr(String divIdStr) {
+		this.divIdStr = divIdStr;
+	}
+
+	public String getReadflag() {
+		return readflag;
+	}
+
+	public void setReadflag(String readflag) {
+		this.readflag = readflag;
+	}
+
+	public Date getReaddate() {
+		return readdate;
+	}
+
+	public void setReaddate(Date readdate) {
+		this.readdate = readdate;
+	}
+
+//	public String getContentStr() {
+//		return contentStr;
+//	}
+//
+//	public void setContentStr(String contentStr) {
+//		this.contentStr = contentStr;
+//	}
+
+	public String getDivcode() {
+		return divcode;
+	}
+
+	public void setDivcode(String divcode) {
+		this.divcode = divcode;
+	}
+
+	public String getNtcontent() {
+		return ntcontent;
+	}
+
+	public void setNtcontent(String ntcontent) {
+		this.ntcontent = ntcontent;
+	}
+
+	public List<NoticeDivision> getNoticeDivisionList() {
+		return noticeDivisionList;
+	}
+
+	public void setNoticeDivisionList(List<NoticeDivision> noticeDivisionList) {
+		this.noticeDivisionList = noticeDivisionList;
+	}
+
+
+
+}

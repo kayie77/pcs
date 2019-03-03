@@ -1,0 +1,90 @@
+package com.yunforge.base.dao;
+
+import java.util.List;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+
+import com.yunforge.base.model.Division;
+
+public interface DivisionDao extends JpaRepository<Division, String>,
+		JpaSpecificationExecutor<Division> {
+
+	@Query("select d from Division d where d.id in ?1 order by d.newOrder ")
+	public List<Division> findByIdInOrderByDivCodeDesc(List<String> ids);
+	
+	@Query("select d from Division d where d.divCode like ?1 and d.divCode != ?2 order by d.divCode ")
+	public List<Division> findByDivCodeLikeAndDivCodeNotOrderByDivCode(String divisionCode,String divisionCode1);
+
+	@Query("select d from Division d where d.divCode like ?1 and d.divCode != ?2 order by d.newOrder ")
+	public List<Division> findByDivCodeLikeAndDivCodeNotOrderByNewOrder(String divisionCode,String divisionCode1);
+
+	@Query("select d from Division d where d.divCode like ?1 order by d.newOrder ")
+	public List<Division> findByDivCodeLikeAndDivCodeNotOrderByNewOrder(String divisionCode);
+	
+	@Query(value=" select div_code from sys_division where checkdivcode(div_code) = 'city' and div_code like ?1 ",nativeQuery = true)
+	public List<String> findCityByAreaCode(String divcode);
+	
+	@Query(value=" select div_code from sys_division where checkdivcode(div_code) = 'country' and div_code like ?1 ",nativeQuery = true)
+	public List<String> findCountryByAreaCode(String divcode);
+	
+	public Division findByDivCode(String divCode);
+
+	public Division findByDivName(String divName);
+
+	@Query(value=" select sd.* "
+			+ " from SYS_DIVISION sd,T_JSTREE_SHOW_DIVCODE jsTree "
+			+ " where sd.div_code = jsTree.DIVCODE "
+			+ " and sd.pid = ?1 "
+			+ " and jsTree.CS_ID in ?2 "
+			+ " and jsTree.enabled = 'Y' "
+			+ " order by sd.new_order asc ",nativeQuery = true)
+	public List<Division> findByParentIdIsOrderByWeightAsc(String id,String roles);
+	
+	public List<Division> findByParentIdIsOrderByWeightAsc(String id);
+	
+	@Query(value=" select sd.* "
+			+ " from SYS_DIVISION sd,T_JSTREE_SHOW_DIVCODE jsTree "
+			+ " where sd.div_code = jsTree.DIVCODE "
+			+ " and sd.pid is null "
+			+ " and jsTree.CS_ID in ?1 "
+			+ " and jsTree.enabled = 'Y' "
+			+ " order by sd.new_order asc ",nativeQuery = true)
+	public List<Division> findByParentIdIsNullOrderByWeightAsc(String roles);
+	
+	public List<Division> findByParentIdIsNullOrderByWeightAsc();
+
+	public Long countByParentIdIsNull();
+
+	public Long countByParentIdIs(String id);
+
+	//select id,div_name,div_code from sys_division where div_code like '____00' and pid is not null order by div_code
+//	@Query(" select d from Division d where d.divCode like ?1 and d.parent is not null order by d.divCode ")
+	public List<Division> findByDivCodeLikeAndParentNotNull(String divCode,Sort sort);
+
+//	@Query(" select d from Division d where d.divCode like ?1 and d.parent is not null order by d.divCode ")
+	public List<Division> findByDivCodeNotLikeAndParentNotNull(String divCode,Sort sort);
+	
+	@Query(value=" select sd.* from sys_division sd where (sd.id = ?1) or (sd.pid = ?1) order by sd.new_order asc ",nativeQuery=true)
+	public List<Division> findSubDivision(String id);
+	
+	@Query(value=" select sd.* from sys_division sd where (sd.div_code not like '45%00') or (sd.div_code ='450000') order by sd.new_order asc ",nativeQuery=true)
+	public List<Division> findXianQuDivision();
+	
+	@Query(value=" " + 
+			" select " + 
+			" div_code," + 
+			" case when checkdivcode(div_code) = 'area' then ''||div_name else" + 
+			"        case when checkdivcode(div_code) = 'city' then '&nbsp;&nbsp;&nbsp;&nbsp;'||div_name else" + 
+			"        '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'||div_name end end" + 
+			" from sys_division " + 
+			" connect by prior id = pid " + 
+			" start with pid is null " + 
+			" order by new_order ",nativeQuery = true)
+	public List<Object[]> findAllDivOrderByNewOrder();
+	
+	@Query(value="select t from Division t where t.parent.divCode='450000' order by t.divCode")
+	public List<Division> findCityDivision();
+} 

@@ -1,0 +1,74 @@
+package com.yunforge.base.web.controller;
+
+import java.util.List;
+import java.util.Properties;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.SessionAttributes;
+
+import com.yunforge.base.model.MessageSend;
+import com.yunforge.base.model.Notice;
+import com.yunforge.base.model.User;
+import com.yunforge.base.service.NoticeManager;
+import com.yunforge.common.Constants;
+import com.yunforge.common.bean.GridBean;
+import com.yunforge.common.bean.Params;
+import com.yunforge.common.util.StringUtil;
+import com.yunforge.core.annotation.MethodRemark;
+import com.yunforge.core.web.controller.BaseController;
+
+@Controller
+@SessionAttributes({ "accordion" })
+public class IndexController extends BaseController {
+	final static Log log = LogFactory.getLog(IndexController.class);
+
+	@Autowired
+	private NoticeManager noticeManager;
+
+
+	@MethodRemark(remark = "访问我的桌面")
+	@RequestMapping(value = "/desktop", method = RequestMethod.GET)
+	public String desktop(HttpServletRequest request, ModelMap model) {
+		Subject currentUser = SecurityUtils.getSubject();
+		User user = (User) currentUser.getSession().getAttribute(
+				Constants.SESSION_USER_KEY);
+		String divCode = user.getDivCode();
+	
+		return "desktop";
+	}
+
+	@MethodRemark(remark = "访问帮助页面")
+	@RequestMapping("/help")
+	public String help() {
+		return "help";
+	}
+
+	@MethodRemark(remark = "访问关于系统页面")
+	@RequestMapping(value = "/about", method = RequestMethod.GET)
+	public String about(HttpServletRequest request, ModelMap model) {
+		Properties props = System.getProperties();
+		Runtime runtime = Runtime.getRuntime();
+		long freeMemoery = runtime.freeMemory();
+		long totalMemory = runtime.totalMemory();
+		long usedMemory = totalMemory - freeMemoery;
+		long maxMemory = runtime.maxMemory();
+		long useableMemory = maxMemory - totalMemory + freeMemoery;
+		model.addAttribute("props", props);
+		model.addAttribute("freeMemoery", freeMemoery);
+		model.addAttribute("totalMemory", totalMemory);
+		model.addAttribute("usedMemory", usedMemory);
+		model.addAttribute("maxMemory", maxMemory);
+		model.addAttribute("useableMemory", useableMemory);
+		return "about";
+	}
+}

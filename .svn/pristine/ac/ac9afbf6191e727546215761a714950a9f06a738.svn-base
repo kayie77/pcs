@@ -1,0 +1,269 @@
+<%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8"%>
+<%@ include file="/WEB-INF/jsp/common/taglibs.jsp"%>
+<%@ include file="/WEB-INF/jsp/common/common.jsp" %>
+
+<c:url var="component" value="/test"/>
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>products</title>
+
+    <!-- Bootstrap -->
+    <link href="${ctx}/assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="${ctx}/assets/css/font-awesome.min.css" rel="stylesheet">
+    <link href="${ctx}/assets/css/analysis/common.css" rel="stylesheet">
+    <link href="${ctx}/assets/bootstrap-datetimepicker/bootstrap-datetimepicker.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style>
+    body{
+        padding: 20px;
+    }
+    .dui-option{
+      cursor: pointer;
+      border: 1px #C1AEAE solid;
+    }
+    .dui-option.active{
+      border: 2px red solid;
+    }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="topic">
+        <div class="constraint">
+          
+        </div>
+      
+        <div class="subject">
+          <span class="title">价格指数走势监测</span>
+          <div class="content">
+            <div class="constraint">
+              <div class="row">
+                <div class="col-sm-12">
+                  <span class="clable">农产品类别: </span>
+                  <ul name="ctype" class="t1-condition list-inline dui-controller" data-value="水果" data-quote="true">
+                    <li data-value="水果" class="dui-option active">水果</li>
+                    <li data-value="蔬菜" class="dui-option">蔬菜</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-12">
+                  <span class="clable">区域选择：</span>
+                  <select name="region" class="t1-condition">
+                    <option value="南宁市">南宁市</option>
+                    <option value="柳州市">柳州市</option>
+                    <option value="桂林市">桂林市</option>
+                    <option value="玉林市">玉林市</option>
+                    <option value="梧州市">梧州市</option>
+                    <option value="钦州市">钦州市</option>
+                    <option value="百色市">百色市</option>
+                    <option value="贵港市">贵港市</option>
+                    <option value="河池市">河池市</option>
+                    <option value="来宾市">来宾市</option>
+                    <option value="北海市">北海市</option>
+                    <option value="崇左市">崇左市</option>
+                    <option value="防城港市">防城港市</option>
+                    <option value="贺州市">贺州市</option>
+                  </select>
+                </div>
+              </div>
+        	 <div class="row">
+                <div class="col-sm-12">
+                  <span class="clable">交易地选择：</span>
+                  <select name="market" class="t2-condition" >
+                    <option value="广西南宁五里亭蔬菜批发市场">南宁市五里亭蔬菜批发市场</option>
+                    <option value="广西柳州柳邕农副产品批发市场">柳州柳邕农副产品批发市场</option>
+                    <option value="广西田阳县果蔬菜批发市场">田阳县果蔬菜批发市场</option>
+                  </select>
+                </div>
+              </div>
+              <!-- 时间条件选择单选按钮-->
+              <div  class="row">
+                <div class="col-sm-3 adjust-center"> 
+                  <span class="clable">展示方式：</span>
+                  <input type="radio" name="time"  value="month" class="date-condition t1-condition" checked="checked" id="date-month"> 月
+                  <input type="radio" name="time"  value="year" class="date-condition t1-condition" id="date-year"> 年
+                </div>
+                <div class="col-sm-2">
+                  <div class="input-group datePicker " >
+                    <input type="text" class="form-control t1-condition" name="cdate" data-quote="true"/>
+                    <span class="input-group-addon">
+                      <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                  </div>
+                </div>
+                <div class="col-sm-1">
+                  <button class="btn btn-default search-btn" data-target="table1">查询</button>
+                </div>
+              </div>
+            </div>
+            <div id="table1" class="table-container hide" data-table="zoushi_crop" data-condition="t1-condition">
+            </div>
+            <div id="table1Chart" class="chart">
+              
+            </div>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="${ctx}/assets/jquery/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="${ctx}/assets/bootstrap/bootstrap.min.js"></script>
+    <script src="${ctx}/assets/js/component/dui-helper.js"></script>
+    <script type="text/javascript" src="${ctx}/assets/moment/min/moment.min.js"></script>
+    <script type="text/javascript" src="${ctx}/assets/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
+    <script src="${ctx}/assets/datepicker/bootstrap-datepicker.js"></script>
+    <script src="${ctx}/assets/datepicker/bootstrap-datepicker.zh-CN.js"></script>
+    <script src="${ctx}/assets/js/echart/dist/echarts-all.js"></script>
+    <script src="${ctx}/assets/js/echart/mycharts.js"></script>
+
+    <script>
+      // 思路：在pricecompositequery.jsp页面中
+      //       加载每日、每周、每月、每年的价格统计模板、
+      //       农产品价格明细模板、交易地农产品价格明细模板，
+      //       农产品类别、农产品、区域、交易地作为公共的条件，
+      //       选择不同的时间显示不同的模板
+      <!--刚开始默认加载每日、每周、每月、每季度、每年的价格统计、农产品明细、交易地明细-->
+      $(document).ready(function(){
+        //chart init
+        $('.subject')
+        .on(
+          'loaded.tbl.dui',
+          '.dui-component',
+          function (e, component) {
+            if (component.attr('id') == 'table1') {
+              drawTable1Chart(component);
+            } else if (component.attr('id') == 'table2') {
+              drawTable2Chart(component);
+            };
+          }
+        );
+        //datePicker init
+        datePickInit();
+
+        //table init
+        $('.table-container').each(function () {
+          loadTable($(this));
+        });
+      });
+      
+      <!--加载每日、每周、每月、每季度、每年的价格统计、农产品明细、交易地明细-->
+      $('.date-condition').click(function(){
+        var datePicker = $(this).parents('.row').find('.datePicker');
+        if ($(this).val() == 'month') {
+          monthPicker(datePicker);
+        } else {
+          yearPicker(datePicker);
+        };
+      });
+
+      $('.search-btn').click(function () {
+        loadTable($('#' + $(this).data('target')));
+      });
+
+      $('.dui-option').click(function () {
+        var $controller = $(this).parents('.dui-controller');
+        $controller.find('.dui-option').removeClass('active');
+        $(this).addClass('active');
+        $controller.data('value', $(this).data('value'));
+      });
+
+
+      function datePickInit(){
+        var now = new Date();
+        $('.datePicker')
+        .datetimepicker({
+          locale: 'zh-CN',
+          useCurrent: false,
+          format: 'YYYY-MM',
+          viewMode: 'months',
+          defaultDate: now
+        });
+      }
+      
+
+      function monthPicker (datePicker) {
+        datePicker
+        .datetimepicker()
+        .each(function () {
+          $(this)
+          .data('DateTimePicker').format('YYYY-MM')
+          .viewMode('months');
+        });
+        
+      }
+
+      function yearPicker (datePicker) {
+        datePicker
+        .datetimepicker()
+        .each(function () {
+          $(this)
+          .data('DateTimePicker').format('YYYY')
+          .viewMode('years');
+        });
+      }
+
+      function drawTable1Chart(component) {
+        var serial = [];
+        component.find('.title').each(function () {
+          serial.push({
+            name: $(this).text(),
+            data: dui_tbl.getDatas(component, $(this).text())
+          });
+        });
+        drawMyChart(
+        $('#table1Chart'),
+        dui_tbl._getTable(component),
+        [
+          {
+            name: '日期',
+            data: component.find('.tbl-side-header .side_title').map(function () {return $(this).text();}).get()
+          }
+        ].concat(serial),
+        'bar1')
+      }
+
+      function drawTable2Chart(component) {
+        var serial = [];
+        component.find('.title').each(function () {
+          serial.push({
+            name: $(this).text(),
+            data: dui_tbl.getDatas(component, $(this).text())
+          });
+        });
+        drawMyChart(
+        $('#table2Chart'),
+        dui_tbl._getTable(component),
+        [
+          {
+            name: '日期',
+            data: component.find('.tbl-side-header .side_title').map(function () {return $(this).text();}).get()
+          }
+        ].concat(serial),
+        'line1');
+      }
+
+      function loadTable (container, condition) {
+        var condition = '.' + $(container).data('condition');
+        duiHelper.load({
+          container:  $(container),
+          cid: $(container).data('table') + '_' + $(condition+'.date-condition:checked').val(),
+          condition: duiHelper.getCondition($('.'+$(container).data('condition')))
+        });
+      }
+    </script>
+  </body>
+</html>

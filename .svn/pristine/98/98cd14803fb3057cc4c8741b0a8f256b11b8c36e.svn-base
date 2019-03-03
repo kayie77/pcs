@@ -1,0 +1,235 @@
+package com.yunforge.collect.model;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.yunforge.base.model.User;
+import com.yunforge.collect.jackson.serializer.CustomJsonDateSerializer;
+import com.yunforge.collect.jackson.serializer.ExecuteTypeSerializer;
+import com.yunforge.collect.jackson.serializer.TaskStatusSerializer;
+import com.yunforge.collect.jackson.serializer.UserSerializer;
+
+@Entity
+@Table(name = "Oper_TaskMain")
+public class TaskMain {
+
+	@Id
+	@GeneratedValue(generator = "system-uuid")
+	@Column(name="ID", nullable = false, updatable = false, length = 100)
+	private String id;
+	
+	@Column(name="NAME", nullable = false, length = 100)
+	private String name; //名称
+	
+	@Column(name="CODE", length = 100)
+	private String code; //编号
+
+	@Column(name="CREATEDON", nullable = true, length = 30)
+	private String createdOn;//创建时间
+	
+	@OneToOne()
+	@JoinColumn(name="CREATEDBY")
+	@JsonSerialize(using = UserSerializer.class)
+	private User createdBy;//创建人
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name="BEGINDATE", nullable = true)
+	@JsonSerialize(using = CustomJsonDateSerializer.class)
+	private Date beginDate;//开始日期
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name="ENDDATE", nullable = true)
+	@JsonSerialize(using = CustomJsonDateSerializer.class)
+	private Date endDate;//结束日期
+	
+	@Column(name="CRON", length = 200)
+	private String cron;//cron表达式
+	
+	public String getCron() {
+		return cron;
+	}
+
+	public void setCron(String cron) {
+		this.cron = cron;
+	}
+
+	@JsonSerialize(using = ExecuteTypeSerializer.class)
+	@Column(name="EXECUTETYPE")
+	private Integer executeType;//执行类型
+	
+	@JsonSerialize(using = TaskStatusSerializer.class)
+	@Column(name="STATE")
+	private Integer state;//状态
+	
+	@Column(name="DESCRIPTION",length = 500)
+	private String description; //描述
+	
+	@Column(name="REMARK", length = 500)
+	private String remark;//备注
+	
+/*	//PersonID	
+	@ManyToOne(fetch=FetchType.LAZY, optional = true)
+	@JoinColumn(name = "DATACOLLECTPERSON")
+	private DataCollectPerson dataCollectPerson;//任务对象(采集员)
+	
+	@ManyToOne(fetch=FetchType.LAZY, optional = false)
+	@JoinColumn(name = "DATACOLLECTCATEGORYID")
+	private DataCollectCategory dataCollectCategory;//任务对象(采集点分类)
+*/	
+	//TaskDetailID
+	@OneToMany(cascade=CascadeType.REMOVE, mappedBy="taskMain", fetch=FetchType.LAZY)  
+    private List<TaskDetail> taskDetails;//任务细表
+
+	//TaskDetailID
+	@OneToMany(cascade=CascadeType.REMOVE, mappedBy="taskMain", fetch=FetchType.LAZY)  
+    private List<TaskGive> taskGives;//任务分配表
+	
+	//DataReoprtedMainID	
+	@OneToMany(cascade=CascadeType.REMOVE, mappedBy="taskMain", fetch=FetchType.LAZY)  
+    private List<DataReoprtedMain> dataReoprtedMains;//填报主表
+
+	public static final class EXECUTETYPE{
+		public static final int DAY  = 1;
+		public static final int WEEK = 2;
+		public static final int MONTHS  = 3;
+	}
+	
+	public static final class STATE{
+		public static final int NOTENABLED  = 0;
+		public static final int INUSE = 1;
+		public static final int EXPIRES  = -1;
+		public static final int DISABLE  = -2;
+	}
+	
+	/*@JsonProperty("dataCollectPersonName")
+	public String getDataCollectPersonName(){
+		return getDataCollectPerson().getName();
+	}*/
+	
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public User getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(User createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getBeginDate() {
+		return beginDate;
+	}
+
+	public void setBeginDate(Date beginDate) {
+		this.beginDate = beginDate;
+	}
+
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+
+	public Integer getExecuteType() {
+		return executeType;
+	}
+
+	public void setExecuteType(Integer executeType) {
+		this.executeType = executeType;
+	}
+
+	public Integer getState() {
+		return state;
+	}
+
+	public void setState(Integer state) {
+		this.state = state;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+	
+	public List<TaskDetail> getTaskDetails() {
+		return taskDetails;
+	}
+
+	public void setTaskDetails(List<TaskDetail> taskDetails) {
+		this.taskDetails = taskDetails;
+	}
+	
+	public String getCreatedOn() {
+		return createdOn;
+	}
+
+	public void setCreatedOn(String createdOn) {
+		this.createdOn = createdOn;
+	}
+
+	public List<DataReoprtedMain> getDataReoprtedMains() {
+		return dataReoprtedMains;
+	}
+
+	public void setDataReoprtedMains(List<DataReoprtedMain> dataReoprtedMains) {
+		this.dataReoprtedMains = dataReoprtedMains;
+	}
+
+	public List<TaskGive> getTaskGives() {
+		return taskGives;
+	}
+
+	public void setTaskGives(List<TaskGive> taskGives) {
+		this.taskGives = taskGives;
+	}
+}
+

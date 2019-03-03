@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modeltable width="100%" high="100%" tableName="#{type}_index_day">
+  <target name="time" dataType="str" label="时间" width="100px">time</target>
+	<target name="price" dataType="num" label="价格" format=".##" sort="true" width="100px">price</target>
+	<condition><![CDATA[ 
+    #{region | exist | quote | prepend region_code= | append  and} 
+    #{market | exist | quote | prepend market_code= | append  and} 
+    date_format(time, '%Y-%m') = '#{cdate}'
+    order by time
+  ]]></condition>
+</modeltable>

@@ -1,0 +1,61 @@
+package com.yunforge.collect.service.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.yunforge.collect.dao.DataCollectIndexDao;
+import com.yunforge.collect.dao.impl.DataCollectIndexDaoImpl;
+import com.yunforge.collect.model.DataCollectIndex;
+import com.yunforge.collect.service.DataCollectIndexManager;
+
+@Service("DataCollectIndexManager")
+public class DataCollectIndexManagerImpl implements DataCollectIndexManager{
+	
+	final static Log log = LogFactory.getLog(DataCollectIndexManagerImpl.class);
+	
+	@Autowired
+	private DataCollectIndexDao dataCollectIndexDao;
+
+	@Autowired
+	private DataCollectIndexDaoImpl dataCollectIndexDaoImpl;
+	
+	@Override
+	public Page<DataCollectIndex> getDataCollectIndex(Map<String, Object> searchParams,Pageable pageable) {
+		return dataCollectIndexDaoImpl.getDataCollectIndex(searchParams, pageable);
+	}
+
+	@Override
+	public List<DataCollectIndex> findAllOrderByIndexCode() {
+		return dataCollectIndexDao.findAllOrderByIndexCode();
+	}
+	@Override
+	public DataCollectIndex findByIndexCode(String indexCode) {
+		List<DataCollectIndex> list = dataCollectIndexDao.findByIndexCode(indexCode);
+		if(list.size() != 0) {
+			return list.get(0);
+		}
+		return null;
+	}
+	
+	@Override
+	public DataCollectIndex findById(String id) {
+		return dataCollectIndexDao.findOne(id);
+	}
+	
+	@Override
+	public DataCollectIndex save(DataCollectIndex dataCollectIndex) {
+		return dataCollectIndexDao.save(dataCollectIndex);
+	}
+	
+	@Override
+	public void deleteById(String id) {
+		dataCollectIndexDao.delete(id);
+	}
+}

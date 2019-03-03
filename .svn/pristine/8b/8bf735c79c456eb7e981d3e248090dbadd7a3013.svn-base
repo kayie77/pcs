@@ -1,0 +1,11 @@
+package com.yunforge.base.service;
+
+import java.util.List;
+import java.util.Map;
+
+public interface AnalysisManager {
+	List<Object[]> getCities();
+	List<Object[]> getCategories();
+	List<Object[]> getProducts();
+	List<Object[]> getMarkets(String regionCode, Map<String, Object> paramsMap);
+}

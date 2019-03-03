@@ -1,0 +1,20 @@
+package com.yunforge.collect.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.yunforge.collect.model.GropInfo;
+
+public interface GropInfoManager {
+	
+	GropInfo  getGropInfo(String id);
+	List<GropInfo> getAllGropInfo();
+	GropInfo  saveGropInfo(GropInfo  gropInfo );
+    void delGropInfos(String[] id) throws Exception;
+	
+	Page<GropInfo> getGropInfo(Map<String, Object> searchParams,Pageable pageable);
+	public List<GropInfo> findDataCollectPerson(List<GropInfo> groupInfoList,String taskMainId);
+}

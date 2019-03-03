@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modeltable width="100%" high="100%" tableName="B_ANALYSIS" dataSource="oracle">
+	<view><![CDATA[
+      
+    ]]>
+    </view>
+    <target  name="rownum" dataType="num" sort="true" label="序号">rownum</target>
+    <target  name="time" dataType="str" sort="true" label="时间">time</target>
+	<target  name="currentPrice" dataType="num" sort="true" format="0.##" label="报告期价格指数">currentPrice</target>
+	<target  name="yearOnYearPrice" dataType="num" sort="true" format="0.##" label="同比指数">yearOnYearPrice</target>
+	<target  name="chainPrice" dataType="num" sort="true" format="0.##" label="环比指数">chainPrice</target>	
+</modeltable>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modeltable width="100%" high="100%" tableName="market_index_month">
+  <target  name="price" dataType="num"  format="0.00" unit="元/千克" label="价格">price</target>
+  <target  name="sale" dataType="num"  format="0.00" unit="销量" label="吨">sale</target>
+  <headDimension>
+    <dimension name="crop" dataType="str" cssClass="ec-legend">crop_name</dimension>
+  </headDimension>
+  <sideDimension>
+    <dimension name="time" dataType="str" label="时间" >time</dimension>
+  </sideDimension>
+ <condition><![CDATA[ 
+    left(time, 4) = '#{cdate}' and
+    market_code = '#{market}' and
+    crop_code in (#{products | quote ,})
+  ]]> </condition>
+</modeltable>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <modeltable id="testTable" width="100%" height="100%" tableName="market_index_day" >
+    <target name="cropName" dataType="str" label="名称">crop_name</target>  
+    <target name="avgPrice" dataType="num" label="本日价格" format=".##" sort="true">price</target>
+    <target name="previousDayPrice" dataType="num" label="上日价格" format=".##" sort="true">prePrice</target>
+    <target name="changeRate" dataType="num" label="涨跌幅度" format="##%" sort="true">(price-prePrice)/prePrice</target>
+    <target name="unit" dataType="str" label="计量单位">unit</target>
+    <target name="market" dataType="str" label="交易地" >market</target>
+    <target name="time" dataType="str" label="时间">time</target>
+    <condition><![CDATA[ 
+      market_code = '#{market}']]> 
+    </condition>
+  </modeltable>

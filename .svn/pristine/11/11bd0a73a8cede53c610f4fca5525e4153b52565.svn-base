@@ -1,0 +1,26 @@
+package com.yunforge.base.dao;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+
+import com.yunforge.base.model.Person;
+
+public interface PersonDao extends JpaRepository<Person, String>,
+		JpaSpecificationExecutor<Person> {
+
+	public Person findByPersName(String persName);
+	
+	public Person findByEmpNum(String empNum);
+	
+	public Person findByIdCertNum(String IdCertNum);
+	
+	public Person findByUserIdIs(String id);
+	
+	public Person findByUserUsernameIs(String username);
+	
+	@Query("select t from Person t where t.isCollent=?2 and  t.org.id=?1")
+	public Page<Person> findByOrgAndCollect(String orgId,Integer isCollect,Pageable pageable);
+}

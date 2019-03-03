@@ -1,0 +1,18 @@
+body, html{
+	width: 100%;
+	height: 100%;
+	margin:0;
+}
+
+#searchResultPanel{
+	border:1px solid #C0C0C0;
+	width:300px;
+	height:100px;
+	display:none;
+}
+.paramContain{
+	margin:10px;
+}
+.anchorBL{
+	display:none;
+}

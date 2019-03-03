@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<settings>
+	<pref>
+		<prefName>PAGE_SIZE</prefName>
+		<prefVal>20</prefVal>
+		<prefDesc>列表显示行数</prefDesc>
+	</pref>
+	<pref>
+		<prefName>DEFAULT_THEME</prefName>
+		<prefVal>base</prefVal>
+		<prefDesc>缺省主题</prefDesc>
+	</pref>
+	<pref>
+		<prefName>FIXED_BANNER</prefName>
+		<prefVal>0</prefVal>
+		<prefDesc>固定顶部导航</prefDesc>
+	</pref>
+	<pref>
+		<prefName>FIXED_SIDEBAR</prefName>
+		<prefVal>1</prefVal>
+		<prefDesc>固定左边导航</prefDesc>
+	</pref>
+	<pref>
+		<prefName>MAIL_NOTIFIED</prefName>
+		<prefVal>0</prefVal>
+		<prefDesc>启用邮件通知</prefDesc>
+	</pref>
+	<pref>
+		<prefName>SMS_NOTIFIED</prefName>
+		<prefVal>0</prefVal>
+		<prefDesc>启用短信通知</prefDesc>
+	</pref>
+</settings>

@@ -1,0 +1,14 @@
+package com.yunforge.collect.dao;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+
+import com.yunforge.collect.model.TaskDetail;
+
+public interface TaskDetailDao extends JpaRepository<TaskDetail, String>,JpaSpecificationExecutor<TaskDetail>{
+	@Query(" from TaskDetail td where td.taskMain.id=?1")
+	List<TaskDetail> findAllByTaskMain(String id);
+}

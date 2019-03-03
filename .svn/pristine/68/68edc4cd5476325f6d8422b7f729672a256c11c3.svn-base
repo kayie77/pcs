@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modeltable width="400px" high="800px" tableName="B_ANALYSIS" dataSource="oracle">
+	<target  name="changeRandge" dataType="num" sort="true" format="0.00" label="涨跌幅度">select T.changeRandge
+  FROM (select T2.changeRandge
+          from (WITH TEST AS (select b.market,
+                                     b.region_name,
+                                     b.crop_name,
+                                     avg(b.price) avgprice,
+                                     to_char(b.time, 'YYYY-MM-DD') time
+                                from B_ANALYSIS b
+                               where #{cdate | prepend
+                               to_char(b.time, 'YYYY-MM-DD') = | append
+                                 and } b.market = '#{market}'
+                               group by b.region_name,
+                                        b.crop_name,
+                                        to_char(b.time, 'YYYY-MM-DD'),
+                                        b.market)
+                 SELECT R.region_name,
+                        R.crop_name,
+                        R.time,
+                        R.market,
+                        trunc(R.avgPrice, 4) avgPrice,
+                        trunc(R.PreviousDayPrice, 4) PreviousDayPrice,
+                        case
+                          when PreviousDayPrice > 0 then
+                           trunc(NVL2(R.avgPrice,
+                                      (R.avgPrice - R.PreviousDayPrice) /
+                                      R.PreviousDayPrice,
+                                      0),
+                                 4)
+                          else
+                           0
+                        end as changeRandge
+                   FROM (SELECT T1.region_name,
+                                T1.crop_name,
+                                T1.time,
+                                T1.market,
+                                T1.avgPrice,
+                                lag(T1.avgPrice, 1, 0) OVER(ORDER BY T1.time) AS PreviousDayPrice
+                           FROM TEST T1) R) T2
+                  order by T2.market, T2.time
+        ) T
+</target>
+	<headDimension>
+		<dimension name="market">market</dimension>
+	</headDimension>
+	<sideDimension>
+		<dimension name="crop_name" label="名称"  sort="true">crop_name</dimension>
+	</sideDimension>
+	
+</modeltable>

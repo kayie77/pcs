@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<Context path="/agrims" reloadable="false">
+	<Loader
+		loaderClass="org.springframework.instrument.classloading.tomcat.TomcatInstrumentableClassLoader" />
+
+	<WatchedResource>WEB-INF/web.xml</WatchedResource>
+
+	<Resource name="jdbc/pcs" 
+	                 auth="Container" 
+	                 type="javax.sql.DataSource"
+	                 factory="org.apache.commons.dbcp.BasicDataSourceFactory"
+		             driverClassName="com.mysql.jdbc.Driver"
+		             url="jdbc:mysql://192.168.1.22:3306/pcs" 
+		             username="root" 
+	             	 password="admin"
+		             maxIdle="30" 
+		             maxWait="-1"
+		             maxActive="30" />
+		            
+</Context>

@@ -1,0 +1,79 @@
+body{
+  padding: 20px;
+}
+
+.dui-tbl>tbody>tr>td,
+.dui-tbl>tbody>tr>th,
+.dui-tbl>tfoot>tr>td,
+.dui-tbl>tfoot>tr>th,
+.dui-tbl>thead>tr>td,
+.dui-tbl>thead>tr>th {
+  padding:4px;
+}
+
+.dui-component .tbl-body{
+  max-height: 400px;
+}
+
+
+.dui-component .tbl-header tr{
+  background-color: #89C3EB;
+}
+
+.dui-component .tbl-cross-header tr{
+  background-color: #89C3EB;
+}
+
+.dui-component .tbl-body table tr:nth-child(odd){
+  background-color: #DAE9F7;
+}
+
+.dui-component .tbl-body table tr:nth-child(even){
+
+}
+
+.chart{
+  width:800px;
+  height:400px;
+  margin-left: -4px;
+}
+
+.subject{
+	border-style:solid; border-width:1px; border-color:#595959;
+  margin-bottom: 40px;
+}
+
+.subject .content{
+  margin-left: 25px;
+  margin-bottom: 10px;
+}
+
+.constraint .row {
+  margin-bottom: 20px;
+}
+
+span.title{
+	height:30px;
+	position:relative;
+	top:-15px;
+	text-align: center;
+	background: white;
+  left: 5px;
+}
+
+.dui-option{
+  cursor: pointer;
+  border: 1px #C1AEAE solid;
+}
+.dui-option.active{
+  border: 2px #89C3EB solid;
+}
+
+.clable {
+  color: #585450;
+  font-weight: bold;
+}
+
+.adjust-center{
+  padding-top: 5px;
+}

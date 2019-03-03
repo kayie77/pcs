@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modeltable width="100%" high="100%" tableName="market_index_day">
+  <target name="cropName" dataType="str" sort="true" label="名称" width="150px">crop_name</target>
+	<target name="price" dataType="num" label="价格" format=".##" sort="true" width="100px">price</target>
+  <target name="unit" dataType="str" label="计量单位" width="100px">unit</target>
+  <target name="market" dataType="str" label="交易地" width="300px">market</target>
+  <target name="time" dataType="str" label="时间" width="100px">time</target>
+	<condition><![CDATA[ 
+    crop_code in (#{products | quote ,})  and
+    market_code in (#{markets | quote ,}) and 
+    time =  '#{cdate}'
+  ]]></condition>
+</modeltable>

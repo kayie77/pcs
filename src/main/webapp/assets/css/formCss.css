@@ -1,0 +1,9 @@
+.modal-content{
+	border: 0px solid rgba(0,0,0,.2);
+}
+.modal-header{
+	background: #82af6f;
+	color: white;
+	padding-top: 10px;
+	padding-bottom:10px;
+}

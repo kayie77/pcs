@@ -1,0 +1,33 @@
+package com.yunforge.collect.dao;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import com.yunforge.collect.model.AgrProCategory2;
+
+public interface AgrProCategory2Dao extends JpaRepository<AgrProCategory2, String>{
+	
+	
+
+	@Query(value="select id from oper_AgrProCategory2 where pid = ?1",nativeQuery=true)
+	public List<String> findChild(String id);
+	
+	@Query("select t from AgrProCategory2 t order by t.code")
+	public List<AgrProCategory2> findAgrProCategoryByOrderByCode();
+	
+	public List<AgrProCategory2> findByParent_IdOrderBySortAscCodeAsc(String pid);
+	
+	public List<AgrProCategory2> findByParent_IdAndStateOrderBySortAscCodeAsc(String pid, Integer state);
+	
+	@Query("select Count(c) from AgrProCategory2 c where c.parent.id = ?1")
+	public int getChildrenCount(String id);
+	
+	@Modifying(clearAutomatically = true)
+	@Query(value="update oper_AgrProCategory2 t set t.state = ?2 where t.id in (select tt.id from oper_AgrProCategory2 tt start with tt.id = ?1 connect by tt.pid = prior tt.id)", nativeQuery=true)
+	public int isEnableCascadeUpdate(String rootId, Integer state);
+	
+	public List<AgrProCategory2> findByNameLike(String name);
+
+}

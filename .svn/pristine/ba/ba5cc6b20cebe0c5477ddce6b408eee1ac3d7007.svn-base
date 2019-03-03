@@ -1,0 +1,18 @@
+--记录数据库修改语句
+create tablespace pcs
+datafile 'D:/oracle/oradata/orcl/pcs.dbf' 
+size 5M 
+autoextend on next 5M maxsize 3000M;
+
+create user pcs identified by  pcs1qazxsw2 
+default tablespace pcs temporary tablespace temp profile DEFAULT;
+
+grant connect,resource,dba to pcs;
+
+
+
+truncate table  OPER_TASKMAIN;
+truncate table OPER_DATAREOPRTEDMAIN;
+truncate table OPER_TASKMAIN;
+truncate table DIC_DATACOLLECTPERSON;
+truncate table DIC_AGRPROREPORT;

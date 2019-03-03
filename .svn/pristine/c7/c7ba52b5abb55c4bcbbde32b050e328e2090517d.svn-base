@@ -1,0 +1,118 @@
+package com.yunforge.collect.service.impl;
+
+import java.text.DecimalFormat;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
+import com.yunforge.collect.dao.DataReoprtedDetailDao;
+import com.yunforge.collect.dao.DataReoprtedMainDao;
+import com.yunforge.collect.dao.TaskDetailDao;
+import com.yunforge.collect.dao.TaskMainDao;
+import com.yunforge.collect.model.DataCollectIndex;
+import com.yunforge.collect.model.DataReoprtedDetail;
+import com.yunforge.collect.model.DataReoprtedMain;
+import com.yunforge.collect.model.TaskDetail;
+import com.yunforge.collect.model.TaskMain;
+import com.yunforge.collect.service.DataReoprtedDetailManager;
+import com.yunforge.collect.service.DataReoprtedMainManager;
+import com.yunforge.common.util.DateUtil;
+import com.yunforge.srpingside.persitence.DynamicSpecifications;
+import com.yunforge.srpingside.persitence.SearchFilter;
+import com.yunforge.srpingside.persitence.SearchFilter.Operator;
+
+@Service("DataReoprtedDetailManager")
+public class DataReoprtedDetailManagerImpl  implements DataReoprtedDetailManager{
+	
+	final static Log log = LogFactory.getLog(DataReoprtedDetailManagerImpl.class);
+	
+	@Autowired
+	private DataReoprtedMainDao dataReoprtedMainDao;
+	
+	@Autowired
+	private DataReoprtedDetailDao dataReoprtedDetailDao;
+	
+	@Autowired
+	private TaskMainDao taskMainDao;
+	
+	@Autowired
+	private TaskDetailDao taskDetailDao;
+	
+	@Override
+	public DataReoprtedDetail getDataReoprtedDetail(String id) {
+		// TODO Auto-generated method stub
+		return dataReoprtedDetailDao.findOne(id);
+	}
+
+	//领取任务并获得任务明细
+	@Override
+	public  Page<DataReoprtedDetail> receiveDataReoprtedDetailByDmId(String dmId, Map<String, Object> searchParams,Pageable pageable){
+		
+		DataReoprtedMain reoprtedMain = dataReoprtedMainDao.getOne(dmId);//根据dmId获得填报主表
+		TaskMain taskMain = taskMainDao.getOne(reoprtedMain.getTaskMain().getId());//根据填报主表获得所属任务
+		
+		//根据任务获得任务的明细
+		Map<String, SearchFilter> filters = SearchFilter.parse(searchParams);
+		filters.put("taskMain.id", new SearchFilter("taskMain.id", Operator.EQ, taskMain.getId()));
+		Specification<TaskDetail> spec = DynamicSpecifications.bySearchFilter(filters.values(), TaskDetail.class);
+		Page<TaskDetail> result = taskDetailDao.findAll(spec, pageable);
+		List<TaskDetail> taskDetailList=  result.getContent();	
+		
+		//循环所有任务细表数据，将其设置到填报细表
+		List<DataReoprtedDetail> reoprtedDetails = new ArrayList<DataReoprtedDetail>();
+		 for (int i = 0; i < taskDetailList.size(); i++) {
+			 DataReoprtedDetail reoprtedDetail = new DataReoprtedDetail();
+			 TaskDetail taskDetail = taskDetailList.get(i);
+			 reoprtedDetail.setTaskDetail(taskDetail);
+			 reoprtedDetail.setDataReoprtedMain(reoprtedMain);
+			 dataReoprtedDetailDao.save(reoprtedDetail);
+			 reoprtedDetails.add(reoprtedDetail);
+		 }
+		 Page<DataReoprtedDetail> pageList=new PageImpl<DataReoprtedDetail>(reoprtedDetails);
+		 
+		return pageList;
+	}
+	
+	//获得任务明细
+	@Override
+	public  List<DataReoprtedDetail> getDataReoprtedDetailByDmId(String dmId){
+	
+		return dataReoprtedDetailDao.findDataReoprtedDetailByDataReoprtedMain_Id(dmId);
+	}
+	
+	@Override
+	public void convertedIndexNameByCode(List<DataReoprtedDetail> drlist,List<DataCollectIndex> dclist){
+		for(DataReoprtedDetail dr :drlist){
+			for(DataCollectIndex dc :dclist){
+				if(dr.getTaskDetail().getDataID().endsWith(dc.getIndexCode())){
+					dr.setDataName(dc.getIndexName());
+//					dataReoprtedDetailDao.save(dr);
+				}
+			}
+		}
+	}
+	
+	//编辑数据
+	@Override
+	public void saveReoprtedDetailData(String[] id,String[] data) throws Exception {
+		// TODO Auto-generated method stub
+		for (int i = 0; i < id.length; i++) {
+			DataReoprtedDetail dataReoprtedDetail = getDataReoprtedDetail(id[i]);
+			dataReoprtedDetail.setData(data[i]);
+			dataReoprtedDetailDao.save(dataReoprtedDetail);
+		}
+	}
+
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modeltable width="100%" high="100%" tableName="B_ANALYSIS" dataSource="oracle">
+	<target  name="price" dataType="num" sort="true" format="0.##" unit="元/公斤" label="价格">avg(price)</target>
+	<headDimension>
+		<dimension name="market">market</dimension>
+	</headDimension>
+	<sideDimension>
+		<dimension name="date" label="时间" >to_char(time, 'YYYY-MM-DD')</dimension>
+	</sideDimension>
+	<condition><![CDATA[ 
+    #{ctype | prepend crop_type= | append  and}
+    #{cname | prepend crop_name= | append  and}  
+    #{cdate | prepend to_char(time,'#{dateFormat}')= | append  and }
+    region_name = '#{region}'
+  ]]> </condition>
+</modeltable>

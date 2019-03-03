@@ -1,0 +1,216 @@
+package com.yunforge.collect.model;
+
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.yunforge.base.model.Division;
+import com.yunforge.collect.jackson.serializer.EnableOrDisableSerializer;
+
+@Entity
+@Table(name = "Dic_DataCollectPoint")
+public class DataCollectPoint {
+
+	@Id
+	@GeneratedValue(generator = "system-uuid")
+	@Column(name="ID", nullable = false, updatable = false, length = 100)
+	private String id;
+	
+	@Column(name="CODE", nullable = false, length = 100)
+	private String code; //采集点编码
+	
+	@Column(name="NAME", nullable = false, length = 100)
+	private String name; //采集点名称
+	
+	@Column(name="SHORTNAME", length = 100)
+	private String shortname; //采集点简称
+	
+	@Column(name="REGION", length = 100)
+	private String region; //所属地区
+	
+	@Column(name="ADRESS", length = 100)
+	private String adress; //地址
+	
+	@Column(name="LINKMAN", length = 100)
+	private String linkman; //联系人
+	
+	@Column(name="TELEPHONE", length = 100)
+	private String telephone; //联系电话
+	
+	@Column(name="LONGITUDE",length = 20)
+	private Double longitude; //经度
+
+	@Column(name="LATITUDE",length = 20)
+	private Double latitude; //纬度
+
+	@JsonSerialize(using = EnableOrDisableSerializer.class)
+	@Column(name="STATE")
+	private Integer state;//状态
+	
+	@Column(name="REMARK", length = 500)
+	private String remark; //备注
+	
+	@ManyToOne(fetch=FetchType.LAZY, optional = false)
+	@JoinColumn(name = "DATACOLLECTCATEGORYID")
+	private DataCollectCategory dataCollectCategory;//采集点分类外键
+	
+	@ManyToOne(fetch=FetchType.LAZY, optional = false)
+	@JoinColumn(name = "DIVISION")
+	private Division division;//采集点地区外键
+	
+	@OneToMany(cascade=CascadeType.REMOVE, mappedBy="dataCollectPoint", fetch=FetchType.LAZY)  
+    private List<DataCollectPerson> dataCollectPersons;
+	
+	@OneToMany(cascade=CascadeType.REMOVE, mappedBy="dataCollectPoint", fetch=FetchType.LAZY)  
+    private List<Reoprted> reoprteds;
+	
+	@JsonProperty("divisionName")
+	public String getDivisionName(){
+		return getDivision().getDivName();
+	}
+
+	public static final class STATE{
+		public static final int DISABLE  = 0;
+		public static final int ENABLE  = 1;
+
+	}
+	
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getShortname() {
+		return shortname;
+	}
+
+	public void setShortname(String shortname) {
+		this.shortname = shortname;
+	}
+
+	public String getRegion() {
+		return region;
+	}
+
+	public void setRegion(String region) {
+		this.region = region;
+	}
+
+	public String getAdress() {
+		return adress;
+	}
+
+	public void setAdress(String adress) {
+		this.adress = adress;
+	}
+
+	public String getLinkman() {
+		return linkman;
+	}
+
+	public void setLinkman(String linkman) {
+		this.linkman = linkman;
+	}
+
+	public String getTelephone() {
+		return telephone;
+	}
+
+	public void setTelephone(String telephone) {
+		this.telephone = telephone;
+	}
+
+	public Double getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(Double longitude) {
+		this.longitude = longitude;
+	}
+		
+	public Double getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(Double latitude) {
+		this.latitude = latitude;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
+	public List<DataCollectPerson> getDataCollectPersons() {
+		return dataCollectPersons;
+	}
+
+	public void setDataCollectPersons(List<DataCollectPerson> dataCollectPersons) {
+		this.dataCollectPersons = dataCollectPersons;
+	}
+
+	public List<Reoprted> getReoprteds() {
+		return reoprteds;
+	}
+
+	public void setReoprteds(List<Reoprted> reoprteds) {
+		this.reoprteds = reoprteds;
+	}
+	
+	public DataCollectCategory getDataCollectCategory() {
+		return dataCollectCategory;
+	}
+
+	public void setDataCollectCategory(DataCollectCategory dataCollectCategory) {
+		this.dataCollectCategory = dataCollectCategory;
+	}
+
+	public Division getDivision() {
+		return division;
+	}
+
+	public void setDivision(Division division) {
+		this.division = division;
+	}
+
+	public Integer getState() {
+		return state;
+	}
+
+	public void setState(Integer state) {
+		this.state = state;
+	}
+}

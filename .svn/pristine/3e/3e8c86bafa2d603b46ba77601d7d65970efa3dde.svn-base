@@ -1,0 +1,401 @@
+package com.yunforge.collect.util;
+
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.Format;
+import java.text.Normalizer.Form;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+import org.junit.Test;
+
+import com.yunforge.collect.dto.PeriodSet;
+
+/**
+ * 期数生产器 根据采集的频率（天、周、月、季度、年）、开始时间、结束时间生成一个时间段的期数列表
+ * 
+ * @author heliteng
+ * 
+ *
+ */
+public class PeriodUtil {
+
+	public static Set<Integer> getPeriodDay(String beginDate, String endDate) {
+		Set<Integer> periods = new TreeSet<Integer>();
+		Calendar c1 = Calendar.getInstance();
+		Calendar c2 = Calendar.getInstance();
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+		try {
+			c1.setTime(f.parse(beginDate));
+			c2.setTime(f.parse(endDate));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		while (c1.compareTo(c2) != 1) {
+			periods.add(Integer.parseInt(f.format(c1.getTime())));
+			c1.add(Calendar.DATE, 1);
+			// System.out.println(f.format(c1.getTime()));
+		}
+		return periods;
+	}
+
+	public static Set<Integer> getPeriodWeek(String beginDate, String endDate) {
+		Set<Integer> periods = new TreeSet<Integer>();
+		Calendar c1 = Calendar.getInstance();
+		Calendar c2 = Calendar.getInstance();
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+		try {
+			c1.setTime(f.parse(beginDate));
+			c2.setTime(f.parse(endDate));
+			// System.out.println(f.format(c1.getTime()));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		Format format = new DecimalFormat("000");
+		while (c1.compareTo(c2) != 1) {
+			String p = c1.get(1) + format.format(c1.get(3));
+			periods.add(Integer.parseInt(p));
+			c1.add(Calendar.DATE, 3);
+			// System.out.println(p);
+			// System.out.println(f.format(c1.getTime()));
+		}
+		return periods;
+	}
+
+	public static Set<Integer> getPeriodMonth(String beginDate, String endDate) {
+		Set<Integer> periods = new TreeSet<Integer>();
+		Calendar c1 = Calendar.getInstance();
+		Calendar c2 = Calendar.getInstance();
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMM");
+		try {
+			c1.setTime(f.parse(beginDate.substring(0, 6)));
+			c2.setTime(f.parse(endDate.substring(0, 6)));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		while (c1.compareTo(c2) != 1) {
+			periods.add(Integer.parseInt(f.format(c1.getTime())));
+			c1.add(Calendar.MONTH, 1);
+		}
+		return periods;
+	}
+
+	public static Set<Integer> getPeriodQuarter(String beginDate, String endDate) {
+		Set<Integer> periods = new TreeSet<Integer>();
+		Calendar c1 = Calendar.getInstance();
+		Calendar c2 = Calendar.getInstance();
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMM");
+		try {
+			c1.setTime(f.parse(beginDate.substring(0, 6)));
+			c2.setTime(f.parse(endDate.substring(0, 6)));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		while (c1.compareTo(c2) != 1) {
+			String p = c1.get(1) + "" + ((c1.get(2) - 1) / 3 + 1);
+			periods.add(Integer.parseInt(p));
+			c1.add(Calendar.MONTH, 1);
+		}
+		return periods;
+	}
+
+	public static Set<Integer> getPeriodYear(String beginDate, String endDate) {
+		Set<Integer> periods = new TreeSet<Integer>();
+		Calendar c1 = Calendar.getInstance();
+		Calendar c2 = Calendar.getInstance();
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+		try {
+			c1.setTime(f.parse(beginDate));
+			c2.setTime(f.parse(endDate));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		while (c1.compareTo(c2) != 1) {
+			periods.add(c1.get(1));
+			c1.add(Calendar.YEAR, 1);
+		}
+		return periods;
+	}
+	
+	public static Set<PeriodSet> getPeriods2(Integer cycle, String beginDate,
+			String endDate) {
+		switch (cycle) {
+		case 1:// 天
+			return PeriodUtil.getPeriodDayTime(beginDate, endDate);
+		case 2:// 周
+			return PeriodUtil.getPeriodWeekTime(beginDate, endDate);
+		case 3:// 月
+			return PeriodUtil.getPeriodMonthTime(beginDate, endDate);
+		default:
+			return PeriodUtil.getPeriodDayTime(beginDate, endDate);
+		}
+	}
+
+	public static Set<Integer> getPeriods(Integer cycle, String beginDate,
+			String endDate) {
+		switch (cycle) {
+		case 1:// 天
+			return PeriodUtil.getPeriodDay(beginDate, endDate);
+		case 2:// 周
+			return PeriodUtil.getPeriodWeek(beginDate, endDate);
+		case 3:// 月
+			return PeriodUtil.getPeriodMonth(beginDate, endDate);
+		case 4:// 季度
+			return PeriodUtil.getPeriodQuarter(beginDate, endDate);
+		case 5:// 年
+			return PeriodUtil.getPeriodYear(beginDate, endDate);
+		default:
+			return PeriodUtil.getPeriodDay(beginDate, endDate);
+		}
+	}
+
+	public static Set<Integer> getPeriodsByMonths(Integer cycle, String months,
+			String beginDate, String endDate) {
+		String startYear = beginDate.substring(0, 4);
+		String endYear = endDate.substring(0, 4);
+		String[] ms = months.split(",");
+		Format format = new DecimalFormat("00");
+		for (int i = 0; i < ms.length; i++) {
+			ms[i] = format.format(Integer.parseInt(ms[i]));
+		}
+		List<String> allmonth = new ArrayList<String>();
+		for (int i = Integer.parseInt(startYear); i <= Integer
+				.parseInt(endYear); i++) {
+			for (int j = 0; j < ms.length; j++) {
+				allmonth.add(i + ms[j]);
+			}
+		}
+		Set<Integer> periods = new TreeSet<Integer>();
+		for (int i = 0; i < allmonth.size(); i++) {
+			Calendar calendar = Calendar.getInstance();
+			calendar.set(Calendar.MONTH, Integer.parseInt(allmonth.get(i)));
+			calendar.set(Calendar.YEAR,
+					Integer.parseInt(allmonth.get(i).substring(0, 4)));
+			int md = getCurrentMonthLastDay(calendar);
+			periods.addAll(PeriodUtil.getPeriods(cycle, allmonth.get(i)
+					.substring(0, 6) + format.format(1), allmonth.get(i)
+					.substring(0, 6) + md));
+			// String date=allmonth.get(i).substring(0, 6)+format.format(j);
+		}
+
+		return periods;
+
+		/*
+		 * switch (cycle) { case 1://天
+		 * 
+		 * return PeriodUtil.getPeriodDay(beginDate, endDate); case 2://周 return
+		 * PeriodUtil.getPeriodWeek(beginDate, endDate); case 3://月 return
+		 * PeriodUtil.getPeriodMonth(beginDate, endDate); case 4://季度 return
+		 * PeriodUtil.getPeriodQuarter(beginDate, endDate); case 5://年 return
+		 * PeriodUtil.getPeriodYear(beginDate, endDate); default: return
+		 * PeriodUtil.getPeriodDay(beginDate, endDate); }
+		 */
+	}
+
+	// 获得当前期数
+	public static Integer[] getCurrentPeriods() {
+		Integer[] p = new Integer[5];
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+		Date date = new Date();
+		String strDate = f.format(date);
+		p[0] = Integer.parseInt(strDate);
+		p[1] = PeriodUtil.getPeriodWeek(strDate, strDate).iterator().next();
+		p[2] = PeriodUtil.getPeriodMonth(strDate, strDate).iterator().next();
+		p[3] = PeriodUtil.getPeriodQuarter(strDate, strDate).iterator().next();
+		p[4] = PeriodUtil.getPeriodYear(strDate, strDate).iterator().next();
+		return p;
+	}
+
+	// 获得当前期数
+	public static String[] getCurrentPeriodsStr() {
+		String[] p = new String[5];
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+		Date date = new Date();
+		String strDate = f.format(date);
+		p[0] = strDate;
+		p[1] = PeriodUtil.getPeriodWeek(strDate, strDate).iterator().next()
+				.toString();
+		p[2] = PeriodUtil.getPeriodMonth(strDate, strDate).iterator().next()
+				.toString();
+		p[3] = PeriodUtil.getPeriodQuarter(strDate, strDate).iterator().next()
+				.toString();
+		p[4] = PeriodUtil.getPeriodYear(strDate, strDate).iterator().next()
+				.toString();
+		return p;
+	}
+
+	// 获得当月天数
+	public static int getCurrentMonthLastDay(Calendar a) {
+		a.set(Calendar.DATE, 1);// 把日期设置为当月第一天
+		a.roll(Calendar.DATE, -1);// 日期回滚一天，也就是最后一天
+		int maxDate = a.get(Calendar.DATE);
+		return maxDate;
+	}
+
+	@Test
+	public void test() {
+		PeriodUtil.getPeriodsByMonths(1, "1,2,9,10", "20160105", "20170504");
+
+		// Set<Integer> periods=PeriodUtil.getPeriodDay("20160101",
+		// "20160101");//天
+		PeriodUtil.getPeriodWeekTime("20160101", "20160406");// 天
+		// Set<Integer> periods=PeriodUtil.getPeriodWeek("20160101",
+		// "20160101");//周
+		// Set<Integer> periods=PeriodUtil.getPeriodMonth("20160301",
+		// "20160301");//月
+		// Set<Integer> periods=PeriodUtil.getPeriodQuarter("20160101",
+		// "20160530");//季度
+		// Set<Integer> periods=PeriodUtil.getPeriodYear("20160101",
+		// "201901230");//季度
+
+		// for (Integer i : periods) {
+		// System.out.println(i);
+		// }
+		// Integer[] p=PeriodUtil.getCurrentPeriods();//当前期数
+		String[] p = PeriodUtil.getCurrentPeriodsStr();// 当前期数
+		for (int i = 0; i < p.length; i++) {
+			// System.out.println(p[i]);
+		}
+	}
+
+	public static Set<PeriodSet> getPeriodDayTime(String beginDate,
+			String endDate) {
+		Set<PeriodSet> ps = new HashSet<PeriodSet>();
+		Calendar c1 = Calendar.getInstance();
+		Calendar c2 = Calendar.getInstance();
+		Calendar c1_end = Calendar.getInstance();
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+		SimpleDateFormat f1 = new SimpleDateFormat("yyyyMMdd 00:00:00");
+		try {
+			c1.setTime(f.parse(beginDate));
+			c2.setTime(f.parse(endDate));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		while (c1.compareTo(c2) != 1) {
+			try {
+				c1_end=c1.getInstance();
+				c1_end.add(Calendar.DATE, 1);
+				PeriodSet p = new PeriodSet(Integer.parseInt(f.format(c1.getTime())),
+						f1.parse(f1.format(c1.getTime())),
+						f1.parse(f1.format(c1_end.getTime())));
+				if(!ps.contains(p))
+					ps.add(p);
+				c1.add(Calendar.DATE, 1);
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+		return ps;
+	}
+
+	public static Set<PeriodSet> getPeriodWeekTime(String beginDate,
+			String endDate) {
+		Set<PeriodSet> p = new HashSet<PeriodSet>();
+		Calendar c1 = Calendar.getInstance();
+		Calendar c2 = Calendar.getInstance();
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+		SimpleDateFormat f1 = new SimpleDateFormat("yyyyMMdd 00:00:00");
+		SimpleDateFormat f2 = new SimpleDateFormat("yyyyMMdd 23:59:59");
+		try {
+			c1.setTime(f.parse(beginDate));
+			c2.setTime(f.parse(endDate));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		Format format = new DecimalFormat("000");
+		while (c1.compareTo(c2) != 1) {
+			try {
+				String pt = c1.get(1) + format.format(c1.get(3));
+
+				PeriodSet ps = new PeriodSet(Integer.parseInt(pt),
+						f1.parse(getMondayOfThisWeek(c1, f1)),
+						f2.parse(getSundayOfThisWeek(c1, f2)));
+				if(!p.contains(ps))
+					p.add(ps);
+				c1.add(Calendar.DATE, 3);
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			// System.out.println(f.format(c1.getTime()));
+		}
+		System.out.println(p);
+		return p;
+	}
+	
+	
+	public static Set<PeriodSet> getPeriodMonthTime(String beginDate,
+			String endDate) {
+		Set<PeriodSet> ps = new HashSet<PeriodSet>();
+		Calendar c1 = Calendar.getInstance();
+		Calendar c1_end = Calendar.getInstance();
+		Calendar c2 = Calendar.getInstance();
+		SimpleDateFormat f1 = new SimpleDateFormat("yyyyMMdd 00:00:00");
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMM");
+		try {
+			c1.setTime(f.parse(beginDate.substring(0, 6)));
+			c2.setTime(f.parse(endDate.substring(0, 6)));
+			c1_end.setTime(f.parse(beginDate));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		while (c1.compareTo(c2) != 1) {
+			try {
+				c1_end=c1.getInstance();
+				c1_end.add(Calendar.MONTH, 1);
+				PeriodSet p = new PeriodSet(Integer.parseInt(f.format(c1.getTime())),
+						f1.parse(f1.format(c1.getTime())),
+						f1.parse(f1.format(c1_end.getTime())));
+				if(!ps.contains(p))
+					ps.add(p);
+				c1.add(Calendar.MONTH, 1);
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+		return ps;
+	}
+
+	/**
+	 * 得到本周周一
+	 *
+	 * @return yyyy-MM-dd
+	 */
+	public static String getMondayOfThisWeek(Calendar c, SimpleDateFormat f1) {
+		int day_of_week = c.get(Calendar.DAY_OF_WEEK) - 1;
+		if (day_of_week == 0)
+			day_of_week = 7;
+		c.add(Calendar.DATE, -day_of_week + 1);
+		return f1.format(c.getTime());
+	}
+
+	/**
+	 * 得到本周周日
+	 *
+	 * @return yyyy-MM-dd
+	 */
+	public static String getSundayOfThisWeek(Calendar c, SimpleDateFormat f2) {
+		int day_of_week = c.get(Calendar.DAY_OF_WEEK) - 1;
+		if (day_of_week == 0)
+			day_of_week = 7;
+		c.add(Calendar.DATE, -day_of_week + 7);
+		return f2.format(c.getTime());
+	}
+
+}

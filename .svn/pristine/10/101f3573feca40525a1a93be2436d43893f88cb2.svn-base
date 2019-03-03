@@ -1,0 +1,19 @@
+package com.yunforge.collect.service;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.yunforge.collect.model.TaskDetail;
+
+
+public interface TaskDetailManager {
+	
+	TaskDetail  newTaskDetail(TaskDetail  taskDetail );
+	TaskDetail getTaskDetail(String id);
+	public void delTaskDetails(String[] id) throws Exception;
+	Page<TaskDetail> getTaskDetail(String tmId, Map<String, Object> searchParams,Pageable pageable);
+	
+}

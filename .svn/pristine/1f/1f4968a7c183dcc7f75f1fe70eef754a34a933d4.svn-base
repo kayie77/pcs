@@ -1,0 +1,236 @@
+package com.yunforge.collect.service.impl;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.yunforge.collect.dao.DataReoprtedDetailDao;
+import com.yunforge.collect.dao.DataReoprtedMainDao;
+import com.yunforge.collect.dao.TaskDetailDao;
+import com.yunforge.collect.dao.TaskMainDao;
+import com.yunforge.collect.dao.impl.TaskMainDaoImpl;
+import com.yunforge.collect.model.DataReoprtedDetail;
+import com.yunforge.collect.model.DataReoprtedMain;
+import com.yunforge.collect.model.TaskDetail;
+import com.yunforge.collect.model.TaskGive;
+import com.yunforge.collect.model.TaskMain;
+import com.yunforge.collect.model.TaskMain_;
+import com.yunforge.collect.service.DataCollectPersonManager;
+import com.yunforge.collect.service.TaskMainManager;
+import com.yunforge.collect.util.PeriodUtil;
+import com.yunforge.common.util.StringUtil;
+import com.yunforge.srpingside.persitence.DynamicSpecifications;
+import com.yunforge.srpingside.persitence.SearchFilter;
+import com.yunforge.srpingside.persitence.SearchFilter.Operator;
+
+@Service("TaskMainManager")
+@Transactional(readOnly=true, rollbackFor=Exception.class)
+public class TaskMainManagerImpl implements TaskMainManager{
+	
+	@Autowired
+	private TaskMainDao taskMainDao;
+
+	@Autowired
+	private TaskMainDaoImpl taskMainDaoImpl;
+
+	@Autowired
+	private TaskDetailDao taskDetailDao;
+	@Autowired
+	private DataReoprtedMainDao dataReoprtedMainDao;
+	@Autowired
+	private DataReoprtedDetailDao dataReoprtedDetailDao;
+	
+	
+	@Autowired
+	private DataCollectPersonManager dcpManager;
+	@PersistenceContext
+	private EntityManager em;
+	
+	public List<String> findDatareoprtedmainByTaskMainId(String taskMainId) {
+		return dataReoprtedDetailDao.findDatareoprtedmainByTaskMainId(taskMainId);
+	}
+	
+	public int getSelfTaskMainCount(String personId) {
+		return taskMainDaoImpl.getSelfTaskMainCount(personId);
+	}
+	
+	public Page<TaskMain> getSelfTaskMain(Map<String, Object> searchParams,Pageable pageable) {
+		Object personId = searchParams.get("personId");
+		return taskMainDaoImpl.getSelfTaskMain(pageable,personId + "");
+	}
+
+	public Page<DataReoprtedMain> queryHistoryDetail(Map<String, Object> searchParams,Pageable pageable) {
+		return taskMainDaoImpl.queryHistoryDetail(searchParams, pageable);
+	}
+	
+	//动态获取信息
+	@Override
+	public Page<TaskMain> getTaskMain(Map<String, Object> searchParams,Pageable pageable) {
+		Map<String, SearchFilter> filters = SearchFilter.parse(searchParams);
+		Specification<TaskMain> spec = DynamicSpecifications.bySearchFilter(filters.values(), TaskMain.class);
+		return taskMainDao.findAll(spec, pageable);
+	}
+	
+	@Override
+	public Page<TaskMain> getTaskMaiByCollectCategory(String id, Map<String, Object> searchParams,Pageable pageable) {
+		Map<String, SearchFilter> filters = SearchFilter.parse(searchParams);
+		filters.put("dataCollectCategory.id", new SearchFilter("dataCollectCategory.id", Operator.EQ, id));
+		Specification<TaskMain> spec = DynamicSpecifications.bySearchFilter(filters.values(), TaskMain.class);
+		return taskMainDao.findAll(spec, pageable);
+	}
+
+	//新增
+	@Override
+	public TaskMain saveTaskMain(TaskMain taskMain) {
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+		taskMain.setCreatedOn(df.format(new Date()));
+		return taskMainDao.save(taskMain);
+	}
+	
+	//根据id获取单条记录
+	@Override
+	public TaskMain getTaskMain(String id) {
+		// TODO Auto-generated method stub
+		return taskMainDao.findOne(id);
+	}
+	
+	//删除
+	@Override
+	public void delTaskMains(String[] id) throws Exception {
+		// TODO Auto-generated method stub
+		for (int i = 0; i < id.length; i++) {
+			TaskMain taskMain = getTaskMain(id[i]);
+			em.refresh(taskMain);
+			em.remove(taskMain);
+		}
+	}
+	
+	@Override
+	public Page<TaskMain> getTaskMainByJPA(Map<String, String[]> paramsMap,Pageable pageable) {
+		return taskMainDao.findAll(currentSpecification(paramsMap), pageable);
+	}
+	
+	//查询任务DAO层
+	private Specification<TaskMain> currentSpecification(final Map<String, String[]> paramsMap){
+		return new Specification<TaskMain>(){
+			@Override
+			public Predicate toPredicate(Root<TaskMain> root,
+					CriteriaQuery<?> arg1, CriteriaBuilder criteriaBuilder) {
+				Predicate conditioin = null;
+				//任务是否启用
+				if(paramsMap.containsKey("state")){
+					conditioin=criteriaBuilder.equal(root.get(TaskMain_.state), paramsMap.get("state")[0]);
+				}else{
+					conditioin=criteriaBuilder.equal(root.get(TaskMain_.state), 1);
+				}
+				//任务类型，天、周
+				if (StringUtils.isNotBlank(paramsMap.get("executeType")[0])) {
+					Predicate con = criteriaBuilder.equal(root.get(TaskMain_.executeType), paramsMap.get("executeType")[0]);
+					conditioin = criteriaBuilder.and(conditioin, con);
+				}
+				//时间范围
+				Date currentDate=new Date();
+				if (paramsMap.containsKey("currentDate")) {  //当前时间
+					currentDate = StringUtil.getDate(paramsMap.get("currentDate")[0]);
+				}else{
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					try {
+						currentDate = sdf.parse(sdf.format(new Date()));
+					} catch (ParseException e) {
+						e.printStackTrace();
+					}
+				}
+					Predicate con1 = criteriaBuilder.greaterThanOrEqualTo(root.get(TaskMain_.endDate), currentDate);
+					conditioin = criteriaBuilder.and(conditioin, con1);
+					
+					Predicate con2 = criteriaBuilder.lessThanOrEqualTo(root.get(TaskMain_.beginDate), currentDate);
+					conditioin = criteriaBuilder.and(conditioin, con2);
+				return conditioin;
+			}
+		};
+	}
+	
+
+	@Override
+	public HashMap<String, Object> instanceTask(TaskMain taskMain,
+			String beginDate, String endDate) {
+		 HashMap<String, Object> result=new HashMap<String, Object>();
+		List<TaskDetail> taskDetails= taskDetailDao.findAllByTaskMain(taskMain.getId());
+		DateFormat df = new SimpleDateFormat("yyyyMMdd");
+		List<TaskGive> tgs=dcpManager.getPersonByTaskMain(taskMain.getId());
+		//删除今天至往后的任务
+		Set<Integer> delPeriods= PeriodUtil.getPeriods(taskMain.getExecuteType(),  beginDate, endDate);
+		if(delPeriods.size()>0){
+			Iterator<Integer> it = delPeriods.iterator();  
+			List<DataReoprtedMain> delList= dataReoprtedMainDao.findThanPeriod(taskMain.getId(),it.next());
+			for (DataReoprtedMain dm : delList) {
+				dataReoprtedMainDao.delete(dm);
+			}
+			result.put("delMsg", "删除"+delList.size()+"期任务");
+		}
+		
+		
+		//1、实例化DataReoprtedMain
+		Set<Integer> taskPeriods= PeriodUtil.getPeriods(taskMain.getExecuteType(), beginDate, endDate);
+		List<DataReoprtedMain> drmList=new ArrayList<DataReoprtedMain>();
+		for (Integer tp : taskPeriods) {
+			for (TaskGive tg : tgs) {
+				 	DataReoprtedMain reoprtMian=new DataReoprtedMain();
+				 	reoprtMian.setPeriod(tp);
+					reoprtMian.setTaskMain(taskMain);
+					reoprtMian.setPerson(tg.getDataCollectPerson());
+					reoprtMian.setTaskName(taskMain.getName());
+					reoprtMian.setRemark(taskMain.getRemark());
+					reoprtMian.setDescription(taskMain.getDescription());
+					reoprtMian.setExecuteType(taskMain.getExecuteType());
+					reoprtMian.setReceiveStatus(0);//任务领取状态
+					reoprtMian.setReportedStatus(0);//未上报状态
+					SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+					reoprtMian.setReceiveTime(df.format(new Date()));// new Date()为获取当前系统时间
+					dataReoprtedMainDao.save(reoprtMian);
+					drmList.add(reoprtMian);
+			}
+		}
+		//2、实例化DataReoprtedDetail
+		for (TaskDetail td : taskDetails) {// 1、农产品指标项
+			Set<Integer> periods= PeriodUtil.getPeriods(taskMain.getExecuteType(), df.format(td.getBeginDate()), df.format(td.getEndDate()));
+			for (Integer period : periods) { // 2、期数
+				for (DataReoprtedMain drm : drmList) {
+					if(drm.getPeriod().equals(period)){
+						for (TaskGive tg : tgs) {// 3、人
+							DataReoprtedDetail drd=new DataReoprtedDetail();
+							drd.setTaskDetail(td);
+							drd.setDataReoprtedMain(drm);
+							drd.setData("0");//默认值为0
+							dataReoprtedDetailDao.save(drd);
+						}
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+}

@@ -1,0 +1,153 @@
+package com.yunforge.analysis.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+@Controller
+@RequestMapping("/analysis")
+@SuppressWarnings({ "rawtypes", "unchecked" })
+public class AgrAnalysisController {
+
+	/**************** view controller *******************/
+
+	/**
+	 * 分析页面
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/index", method = RequestMethod.GET)
+	public String Analysis() {
+		return "analysis/jsontest";
+	}
+
+	/**
+	 * 获取农产品类别 主要是根据数据库查询 格式化成json数据
+	 * 
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	@RequestMapping(value = "/ctype")
+	public @ResponseBody Map getCtype() throws JsonProcessingException {
+		Map ctypeMap = new HashMap();
+		ctypeMap.put("type1", "水果");
+		ctypeMap.put("type2", "蔬菜");
+		return ctypeMap;
+	}
+
+	/**
+	 * 根据农产品类别获取农产品 获取的数据格式化成json数据
+	 * 
+	 * @param ctype
+	 *            农产品类别
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	@RequestMapping(value = "/cname")
+	public @ResponseBody Map getCNameByCType(@RequestParam String ctype)
+			throws JsonProcessingException {
+		Map cnameMap = new HashMap();
+		if ("水果".equals(ctype)) {
+			cnameMap.put("cname1", "香蕉");
+			cnameMap.put("cname2", "荔枝");
+			cnameMap.put("cname3", "葡萄");
+			cnameMap.put("cname4", "苹果");
+		}
+		if ("蔬菜".equals(ctype)) {
+			cnameMap.put("cname1", "萝卜");
+			cnameMap.put("cname2", "芥菜");
+			cnameMap.put("cname3", "茄子");
+			cnameMap.put("cname4", "黄瓜");
+		}
+		return cnameMap;
+	}
+	
+	/**
+	 * 获取重点农产品类别 主要是根据数据库查询 格式化成json数据
+	 * 
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	@RequestMapping(value = "/keyctype")
+	public @ResponseBody Map getKeyCtype() throws JsonProcessingException {
+		Map ctypeMap = new HashMap();
+		ctypeMap.put("type1", "水果");
+		ctypeMap.put("type2", "蔬菜");
+		return ctypeMap;
+	}
+
+	/**
+	 * 根据农产品类别获取农产品 获取的数据格式化成json数据
+	 * 
+	 * @param ctype
+	 *            重点农产品类别
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	@RequestMapping(value = "/keycname")
+	public @ResponseBody Map getKeyCNameByCType(@RequestParam String ctype)
+			throws JsonProcessingException {
+		Map cnameMap = new HashMap();
+		if ("水果".equals(ctype)) {
+			cnameMap.put("cname1", "香蕉");
+			cnameMap.put("cname2", "荔枝");
+			cnameMap.put("cname3", "葡萄");
+			cnameMap.put("cname4", "苹果");
+		}
+		if ("蔬菜".equals(ctype)) {
+			cnameMap.put("cname1", "萝卜");
+			cnameMap.put("cname2", "芥菜");
+			cnameMap.put("cname3", "茄子");
+			cnameMap.put("cname4", "黄瓜");
+		}
+		return cnameMap;
+	}
+
+	/**
+	 * 获取区域 格式化成json数据
+	 * 
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	@RequestMapping(value = "/region")
+	public @ResponseBody Map getRegion() throws JsonProcessingException {
+		Map regionMap = new HashMap();
+		regionMap.put("region1", "南宁市");
+		regionMap.put("region2", "柳州市");
+		regionMap.put("region3", "田阳县");
+		return regionMap;
+	}
+
+	/**
+	 * 根据区域名称获取该区域的市场 格式化成json数据
+	 * 
+	 * @param region
+	 *            某个区域的名称
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	@RequestMapping(value = "/market")
+	public @ResponseBody Map getMarketByRegion(@RequestParam String region)
+			throws JsonProcessingException {
+		Map marketMap = new HashMap();
+		System.out.println("========================================================"+region);
+		if ("南宁市".equals(region)) {
+			marketMap.put("market1", "广西南宁五里亭蔬菜批发市场");
+		}
+		if ("柳州市".equals(region)) {
+			marketMap.put("market1", "广西柳州柳邕农副产品批发市场");
+		}
+		if ("田阳县".equals(region)) {
+			marketMap.put("market1", "广西田阳县果蔬菜批发市场");
+		}
+		return marketMap;
+	}
+
+}

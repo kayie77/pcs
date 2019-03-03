@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <modeltable id="testTable" width="800px" height="400px" tableName="B_ANALYSIS" dataSource="oracle">
+<!--    <view><![CDATA[
+        select   as a,  as b from bus_crop
+      ]]>
+      </view>  -->
+      <target name="rownum" dataType="num" sort="true" label="序号">rownum</target>
+      <target name="cropName" dataType="str" sort="true" label="名称">crop_name</target>
+      <target name="avgPrice" dataType="num" label="均价">avg(price) over(partition by extract(day from time))</target>
+      <condition><![CDATA[
+        #{condition}
+      ]]>
+      </condition>
+  </modeltable>

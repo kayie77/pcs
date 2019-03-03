@@ -1,0 +1,28 @@
+package com.yunforge.base.model;
+
+import java.util.Date;
+import javax.annotation.Generated;
+import javax.persistence.metamodel.SingularAttribute;
+import javax.persistence.metamodel.StaticMetamodel;
+
+@Generated(value="Dali", date="2016-01-19T16:49:47.747+0800")
+@StaticMetamodel(Person.class)
+public class Person_ {
+	public static volatile SingularAttribute<Person, String> id;
+	public static volatile SingularAttribute<Person, String> persName;
+	public static volatile SingularAttribute<Person, Date> birthday;
+	public static volatile SingularAttribute<Person, String> birthPlace;
+	public static volatile SingularAttribute<Person, Integer> gender;
+	public static volatile SingularAttribute<Person, String> idCertNum;
+	public static volatile SingularAttribute<Person, String> empNum;
+	public static volatile SingularAttribute<Person, String> email;
+	public static volatile SingularAttribute<Person, String> mobile;
+	public static volatile SingularAttribute<Person, String> telNum;
+	public static volatile SingularAttribute<Person, String> faxNum;
+	public static volatile SingularAttribute<Person, String> zip;
+	public static volatile SingularAttribute<Person, String> address;
+	public static volatile SingularAttribute<Person, String> persDesc;
+	public static volatile SingularAttribute<Person, Integer> isCollent;
+	public static volatile SingularAttribute<Person, User> user;
+	public static volatile SingularAttribute<Person, Org> org;
+}

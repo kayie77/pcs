@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <modeltable id="testTable" width="100%" height="100%" tableName="B_ANALYSIS" dataSource="oracle">
+      <view><![CDATA[
+        select rownum,
+          c.*
+          from (
+          select
+            distinct
+            b.crop_name,
+            avg(b.price) over(partition by to_char(b.time, 'YYYY'),b.market) as avgPrice,
+            pre.avgPrice as preAvgPrice,
+            (avg(b.price) over(partition by to_char(b.time, 'YYYY'),b.market) - pre.avgPrice)/pre.avgPrice as changeRandge,                
+            b.unit,
+            b.market,
+            b.information,
+            to_char(b.time, 'YYYY') as tt
+         from B_ANALYSIS b,(
+            select
+              market,  
+              to_char(time, 'YYYY') as tt,
+              avg(price) as avgPrice
+            from B_ANALYSIS
+            where  
+              crop_name = '#{ncp}'
+            group by
+              market,
+              to_char(time, 'YYYY')
+          ) pre
+          where 
+            b.crop_name = '#{ncp}' and
+            b.market = pre.market and 
+            to_char(add_months(b.time, -12), 'YYYY') = pre.tt
+          ) c
+        where c.tt = '#{cdate}'
+      ]]>
+      </view>
+      <target name="rownum" dataType="num" sort="true" label="序号">rownum</target>
+      <target name="cropName" dataType="str" sort="true" label="名称">crop_name</target>
+      <target name="avgPrice" dataType="num" label="本年平均价格" format=".##">avgPrice</target>
+      <target name="preAvgPrice" dataType="num" label="上年平均价格" format=".##">preAvgPrice</target>
+      <target name="changeRandge" dataType="num" label="涨跌幅度" format="##%">changeRandge</target>
+      <target name="unit" dataType="str" label="计量单位">unit</target>
+      <target name="market" dataType="str" label="交易地">market</target>
+      <target name="information" dataType="num" label="信息来源">information</target>
+      <target name="time" dataType="str" label="时间">tt</target>
+  </modeltable>

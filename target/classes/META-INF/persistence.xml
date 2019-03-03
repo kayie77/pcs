@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.1"
+	xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+	<persistence-unit name="agrims" transaction-type="RESOURCE_LOCAL">
+		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		
+<!-- 		<class>com.yunforge.sys.model.Parameter</class> -->
+<!-- 		<class>com.yunforge.sys.model.Event</class> -->
+<!-- 		<class>com.yunforge.sys.model.Group</class> -->
+<!-- 		<class>com.yunforge.sys.model.SysLog</class> -->
+<!-- 		<class>com.yunforge.sys.model.Preference</class> -->
+<!-- 		<class>com.yunforge.sys.model.Resource</class> -->
+<!-- 		<class>com.yunforge.sys.model.Role</class> -->
+<!-- 		<class>com.yunforge.sys.model.User</class> -->
+<!-- 		<class>com.yunforge.sys.model.DictVal</class> -->
+<!-- 		<class>com.yunforge.sys.model.DictType</class> -->
+<!-- 		<class>com.yunforge.sys.model.Year</class> -->
+<!-- 		<class>com.yunforge.sys.model.Dict</class> -->
+		
+		<class>com.yunforge.base.model.Parameter</class>
+		<class>com.yunforge.base.model.Person</class>
+		<class>com.yunforge.base.model.Event</class>
+		<class>com.yunforge.base.model.Group</class>
+		<class>com.yunforge.base.model.SysLog</class>
+		<class>com.yunforge.base.model.Org</class>
+		<class>com.yunforge.base.model.Preference</class>
+		<class>com.yunforge.base.model.Resource</class>
+		<class>com.yunforge.base.model.Role</class>
+		<class>com.yunforge.base.model.User</class>
+		<class>com.yunforge.base.model.DictVal</class>
+		<class>com.yunforge.base.model.DictType</class>
+		<class>com.yunforge.base.model.Division</class>
+		<class>com.yunforge.base.model.Year</class>
+		<class>com.yunforge.base.model.Dict</class>
+		<class>com.yunforge.base.model.UserRole</class>
+		<class>com.yunforge.base.model.UserRolePK</class>
+		<class>com.yunforge.base.model.Notice</class>
+		<class>com.yunforge.base.model.NoticeDivision</class>
+		<class>com.yunforge.base.model.Message</class>
+		<class>com.yunforge.base.model.MessageFile</class>
+		<class>com.yunforge.base.model.MessageSend</class>
+		
+		
+		<class>com.yunforge.cms.model.Info</class>
+		<class>com.yunforge.cms.model.InfoFile</class>
+		<class>com.yunforge.cms.model.InfoCat</class>
+		<class>com.yunforge.cms.model.Comment</class>
+		<class>com.yunforge.cms.model.Rating</class>
+		<class>com.yunforge.cms.model.InfoType</class>
+		
+		<class>com.yunforge.collect.model.AgrProCategory2</class>
+	    <class>com.yunforge.collect.model.GropInfo</class>
+		<class>com.yunforge.collect.model.PersonGroup</class>
+		<class>com.yunforge.collect.model.DataCollectPoint</class>
+		<class>com.yunforge.collect.model.DataCollectPerson</class>
+		<class>com.yunforge.collect.model.Reoprted</class>
+		<class>com.yunforge.collect.model.DataCollectCategory</class>
+		<class>com.yunforge.collect.model.TaskMain</class>
+		<class>com.yunforge.collect.model.TaskDetail</class>
+		<class>com.yunforge.collect.model.TaskGive</class>
+		<class>com.yunforge.collect.model.DataReoprtedMain</class>
+		<class>com.yunforge.collect.model.DataReoprtedDetail</class>
+		<class>com.yunforge.collect.model.DataCollectIndex</class>
+		
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+	</persistence-unit>
+</persistence>

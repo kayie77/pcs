@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modeltable width="100%" high="100%" tableName="B_ANALYSIS" dataSource="oracle">
+	<view><![CDATA[
+      
+    ]]>
+    </view>
+    <target name="rownum" dataType="num" sort="true" label="序号">rownum</target>
+    <target name="cropName" dataType="str" sort="true" label="名称">crop_name</target>
+    <target name="avgPrice" dataType="num" label="本日价格" format=".##">avgPrice</target>
+    <target name="previousDayPrice" dataType="num" label="上日价格" format=".##">preAvgPrice</target>
+    <target name="changeRandge" dataType="num" label="涨跌幅度" format="##%">changeRandge</target>
+    <target name="volume" dataType="num" label="成交量">volume</target>
+    <target name="unit" dataType="str" label="计量单位">unit</target>
+    <target name="market" dataType="str" label="交易地">market</target>
+    <target name="time" dataType="str" label="时间">time</target>    	
+</modeltable>

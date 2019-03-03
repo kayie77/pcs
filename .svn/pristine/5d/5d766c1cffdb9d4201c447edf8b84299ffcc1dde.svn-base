@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modeltable width="100%" high="100%" tableName="B_ANALYSIS" dataSource="oracle">
+  <view><![CDATA[
+        select
+          distinct
+          b.crop_name,
+          avg(b.price) over(partition by to_char(b.time, 'YYYY'),b.crop_name) as avgPrice,
+          sum(b.volume) over(partition by to_char(b.time, 'YYYY'),b.crop_name) as totalSale,
+          (avg(b.price) over(partition by to_char(b.time, 'YYYY'),b.crop_name) - pre.avgPrice)/pre.avgPrice as changeRandge,                
+          b.market,
+          to_char(b.time, 'YYYY') as tt
+       from B_ANALYSIS b,(
+          select
+            market,  
+            to_char(time, 'YYYY') as tt,
+            avg(price) as avgPrice
+          from B_ANALYSIS
+          where  
+            crop_name = '#{cname}'
+          group by
+            market,
+            to_char(time, 'YYYY')
+        ) pre
+        where 
+          crop_name = '#{cname}' and
+          to_char(b.time, 'YYYY') = '#{cdate}' and
+          b.market = pre.market and
+          to_char(add_months(b.time, -1), 'YYYY') = pre.tt
+          order by #{mttype} desc
+    ]]>
+  </view>
+  <target  name="market" dataType="str" label="市场">market</target>
+  <target  name="avgPrice" dataType="num"  sort="true" format="0.##" unit="元/公斤" label="价格">avgPrice</target>
+  <target  name="totalSale" dataType="num"  sort="true" format="0.##" unit="千克" label="销量">totalSale</target>
+  <target  name="changeRandge" dataType="num" sort="true" format="##%" label="涨跌幅度">changeRandge</target>
+</modeltable>

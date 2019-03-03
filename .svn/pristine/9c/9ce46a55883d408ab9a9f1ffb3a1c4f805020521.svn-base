@@ -1,0 +1,150 @@
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8"%>
+<%@ include file="/WEB-INF/jsp/common/taglibs.jsp"%>
+<c:set var="ctx" value="${pageContext.request.contextPath}"></c:set>
+<link href="${ctx}/assets/css/mgr-common.css" rel="stylesheet">
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-xs-12" >
+			 <div class="btn-group btn-group-sm" style="margin-top: 10px;margin-bottom: 10px;">
+			 	<c:if test="${reportedStatus == 0}">
+					<button type="button" class="btn btn-primary" onclick="detailForm();">保存数据</button>
+					<button type="button" class="btn btn-success" name="reportedData" onclick="reportedData();">上报数据</button>
+					
+				</c:if>
+				<c:if test="${reportedStatus == 1}">
+					<p class="text-danger">任务已上报，等待审核中...</p>
+				</c:if>
+			 </div>
+		</div>
+
+		<!-- right -->
+		<div class="col-xs-12" >
+			<table class="table table-bordered"id="table">
+			  <thead>	
+				  <tr>
+					  <th class="text-center" style="width: 200px;">农产品</th>
+					  <th class="text-center" style="width: 200px;">指标</th>
+					  <th class="text-center" style="width: 200px;">指标值</th>
+					  <th class="text-center" style="width: 200">备注</th>
+					  <th class="text-center" style="width: 100px">是否必填</th>
+					  <th class="text-center hide" style="width: 30px;" >code</th>
+				  </tr>
+			   </thead>
+			   <tbody>
+				   <c:forEach var="detailItem" items="${detailList}">
+				      <tr id="${detailItem.id}" class="detail-row"><td class="text-center">${detailItem.taskDetail.agrProCategory2.name}</td>
+				      	  <td class="text-center">${detailItem.dataName}</td>
+				      	  <td class="text-center"><input class="indexValue" type="text" id="data" name="data" value="${detailItem.data}"
+				      	  <c:if test="${detailItem.dataReoprtedMain.reportedStatus == 1}">disabled</c:if>/></td>
+				      	  <td class="text-center">${detailItem.remark}</td>
+				      	  <td class="text-center">${detailItem.taskDetail.nullable}</td> 
+				      </tr>
+				   </c:forEach>
+			    </tbody>
+		    </table>
+		</div>
+	</div>
+</div>
+<script src="${ctx}/assets/jquery/plugins/jstree/jstree.min.js"></script>
+<script src="${ctx}/assets/jquery/plugins/lixi_common/js-table.js"></script>
+<script src="${ctx}/assets/jquery/plugins/lixi_common/ajax_render.js"></script>
+<script src="${ctx}/assets/jquery/plugins/lixi_common/utils.js"></script>
+<script src="${ctx}/assets/bootstrap/plugins/bootbox/bootbox.min.js"></script>
+<script>
+
+	$(document).ready(function() {
+		hebing(0);
+		hebing(3);
+	});
+	
+	//合并相同的品种
+	function hebing(cellNum) {
+		var rows = $("#table")[0].rows;
+		for(var i = 1;i < rows.length;i++) {
+			var count = 1;
+			for(var j = i+1;j < rows.length;j++) {
+				if(rows[i].cells[cellNum].innerHTML == rows[j].cells[cellNum].innerHTML) {
+					count++;
+					rows[j].cells[cellNum].style.display = "none";
+				}
+			}
+			rows[i].cells[cellNum].rowSpan = count;
+			i += (count-1);
+		}
+	}
+
+    function getDcpSelectedRowsId(node) {
+		return $('tbody .detail-row').map(function() {
+			return $(this).prop('id');
+		});
+	}
+	
+	function getDcpSelectedRowsData(node) {
+		return $('tbody .detail-row input').map(function() {
+			return $(this).prop('value');
+		});
+	}
+
+	function detailForm() {
+		var ids = getDcpSelectedRowsId();
+		var datas = getDcpSelectedRowsData();
+
+		bootbox.confirm('确定要保存吗?', function(result) {
+			if (result) {
+				idParams = ids.map(function(index, id) {
+					return 'id=' + id;
+				}).toArray().join('&');
+
+				dataParams = datas.map(function(index, data) {
+					return 'data=' + data;
+				}).toArray().join('&');
+
+				var url = '${ctx}/collect/dataReoprtedDetail?' + idParams + '&'
+						+ dataParams;
+				$.post(url, function(result) {
+					if (result.status) {
+						$.toaster({
+							title : '成功',
+							priority : 'success',
+							message : result.message
+						});
+						reloadTaskDetailTable(getDmId());
+					} else {
+						$.toaster({
+							title : '失败',
+							priority : 'warning',
+							message : result.message
+						});
+					}
+				});
+			}
+		});
+
+	}
+	
+	function reportedData(){
+		
+		bootbox.confirm('确定要上报吗?', function(result) {
+			if (result) {
+				var url = '${ctx}/collect/dataReoprtedMain/reoprted?dmId=${dmId}';
+				
+				$.get(url, function(result) {
+					if (result.status) {
+						$.toaster({
+							title : '成功',
+							priority : 'success',
+							message : result.message
+						});
+						reloadTaskDetailTable(getDmId());
+					} else {
+						$.toaster({
+							title : '失败',
+							priority : 'warning',
+							message : result.message
+						});
+					}
+				});
+			}
+			});
+	}
+</script>

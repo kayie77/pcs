@@ -1,0 +1,383 @@
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8"%>
+<%@ include file="/WEB-INF/jsp/common/taglibs.jsp"%>
+<c:set var="ctx" value="${pageContext.request.contextPath}"></c:set>
+
+    <style>
+      .float-menu{
+        max-height: 400px;
+        overflow-y: scroll;
+        position: absolute;
+        top: 100%;
+        /* left: 0; */
+        z-index: 1000;
+        float: left;
+        min-width: 160px;
+        padding: 5px 0;
+        margin: 2px 0 0;
+        font-size: 14px;
+        text-align: left;
+        list-style: none;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 4px;
+        box-shadow: 0 6px 12px rgba(0,0,0,.175);
+      }
+      #newTopCtg{
+        margin-bottom: 10px;
+      }
+      .def-cur{
+        cursor: default;
+      }
+      .tree-toggle{
+        cursor:pointer;
+      }
+      .tree-toggle-open{
+        transform:rotate(45deg);
+        -ms-transform:rotate(45deg);   /* IE 9 */
+        -moz-transform:rotate(45deg);  /* Firefox */
+        -webkit-transform:rotate(45deg); /* Safari 和 Chrome */
+        -o-transform:rotate(45deg);  /* Opera */
+      }
+      .leaf .tree-toggle{
+        display: none;
+      }
+    </style>
+
+    <!-- add and edit modal -->
+    <div class="modal fade" id="modalDialog" tabindex="-1" role="dialog" aria-labelledby="新增" data-backdrop="static">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <!-- content -->
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal fade" id="pageDialog" tabindex="-1" role="dialog" aria-labelledby="关联" data-backdrop="static">
+      <div class="modal-lg"  style="min-width: 100%;min-height: 1138px;">
+        <div class="modal-content" style="min-width: 100%;min-height: 1138px;border: 0px;">
+        
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" id="close-dialog"></span></button>
+           <div className="modal-body" style="min-width: 100%;min-height: 1138px;">
+            <iframe src="" id="modalPage" class="modalFrame" frameborder="0" style="width:100%; min-height:1138px;"></iframe>
+           </div>
+        </div>
+      </div>
+    </div>
+    
+<div class="hr hr-18 dotted hr-double"></div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="">
+      <div class="widget-box">
+        <div class="widget-header widget-header-flat">
+          <h4 class="widget-title">任务细表</h4>
+
+          <div class="widget-toolbar" style="line-height: 32px;">
+            <label>
+              <small>
+                <button name="newTaskDetail" id="newTaskDetail" class="btn btn-white btn-success btn-sm btn-round" style="line-height: 20px;"><i class="ace-icon fa fa-plus bigger-100 green"></i>新建</button>
+              </small>
+            </label>
+            <label>
+              <small>
+                <button name="delTaskDetail" id="delTaskDetail" class="btn btn-white btn-danger btn-sm btn-round" style="line-height: 20px;"><i class="ace-icon fa fa-trash-o bigger-120 red"></i>删除</button>
+              </small>
+            </label>
+            
+          </div>
+        </div>
+
+        <div class="widget-body">
+          <div class="widget-main">
+            <div class="fix-table-container">
+              <table class="table table-striped table-bordered table-hover js-table fix-table " id="taskDetailTable">
+                <thead>
+                 <tr>
+                   <th class="text-left" style="width: 50px;"><input type="checkbox" id="dcp_row_all_selector">序号</th>
+                   <th class="text-center" style="width: 250px;">农产品</th>
+                   <th class="text-center" style="width: 200px;">采集指标</th>
+                   <th class="text-center" style="width: 250px;">采集月份</th>
+                   <th class="text-center" style="width: 200px;">备注</th>
+                   <th class="text-center" style="width: 60px;">编辑</th>
+                 </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <script>
+    
+    var scripts = [
+         			null,
+         			"${ctx}/assets/jquery/ui/jquery-ui.custom.min.js",
+         			"${ctx}/assets/jquery/plugins/jquery-form/jquery-form.min.js",
+         			"${ctx}/assets/jquery/plugins/validation/jquery.validate.min.js",
+         			"${ctx}/assets/jquery/plugins/validation/localization/messages_zh.min.js",
+         			"${ctx}/assets/bootstrap/plugins/date-time/bootstrap-datepicker.min.js",
+         			"${ctx}/assets/bootstrap/plugins/date-time/locales/bootstrap-datepicker.zh-CN.js",
+         			"${ctx}/assets/bootstrap/plugins/bootbox/bootbox.min.js",
+         			"${ctx}/assets/jquery/plugins/jqGrid/js/jquery.jqGrid.min.js",
+         			"${ctx}/assets/jquery/plugins/jqGrid/js/i18n/grid.locale-cn.js",
+         			"${ctx}/assets/jquery/plugins/lixi_common/ajax_render.js",
+         			"${ctx}/assets/jquery/plugins/lixi_common/jquery.serialize-object.min.js",
+         			"${ctx}/assets/jquery/plugins/toast/jquery.toaster.js",
+         			"${ctx}/assets/jquery/plugins/lixi_common/utils.js",
+         			"${ctx}/assets/jquery/plugins/jstree/jstree.min.js",
+         			"${ctx}/assets/jquery/plugins/lixi_common/js-table.js",
+         			"${ctx}/assets/js/agrims.js",
+         			"${ctx}/assets/bootstrap-multiselect/js/bootstrap-multiselect.js" ,null ]
+         	$('.page-content-area').ace_ajax('loadScripts', scripts, function() {
+         		jQuery(function($) {
+         			$('#taskDetailTable').jstable({pager:true,template:getDcpRowTemplate()});
+         	        reloadTaskDetailTable('${tmId}');
+         	        $('#taskDetailTable').data('tmId','${tmId}');
+
+         	      //init iframe
+         	        var iframe = document.getElementById("modalPage");  
+         	        if (iframe.attachEvent) {  
+         	            iframe.attachEvent("onload", function() {   
+         	              $('#pageDialog').modal("show"); 
+         	            });  
+         	        } else {  
+         	            iframe.onload = function() {  
+         	              $('#pageDialog').modal("show");
+         	            };  
+         	        }
+
+         	        //action bar new
+         	        $('button[name="newTaskDetail"]').click(function (){
+         	          if (!getTmId()) {
+         	            bootbox.alert("请先选择正确分类!");
+         	          }else{
+         	            showModal('${ctx}/collect/taskDetail/view/new?tmId=' + $('#taskDetailTable').data('tmId'), taskDetailFormInit);
+         	          }
+         	        });
+
+         	        //action bar del
+         	        $('button[name="delTaskDetail"]').click(function (){
+         	          var ids = getDcpSelectedRowsId();
+         	          if (!ids || ids.length <= 0) {
+         	            bootbox.alert("请选择操作的目标!");
+         	          }else{
+         	            bootbox.confirm('确定要删除吗?',function(result){
+         	              if(result) { 
+         	                params = ids.map(function (index,id){
+         	                  return 'id='+id;
+         	                }).toArray().join('&');
+
+         	                var url = '${ctx}/collect/taskDetail?del&' + params;
+         	                $.post(url, function (result){
+         	                  if(result.status){
+         	                    $.toaster({ title : '成功', priority : 'success', message : result.message });
+         	                    reloadTaskDetailTable(getTmId());
+         	                  }else{
+         	                    $.toaster({ title : '失败', priority : 'warning', message : result.message });
+         	                  }
+         	                }); 
+         	              }
+         	            });
+         	          }
+         	        });
+         	        
+         		});
+         	});
+      $(document).ready(function () {
+
+        
+      });
+
+      function getTmId(){
+        return $('#taskDetailTable').data('tmId');
+      }
+
+      function reloadTaskDetailTable(tmId){
+        ajaxRenderDcpTable('${ctx}/collect/taskDetail?sort=agrProCategory2.name&tmId=' + tmId,
+        		getDcpRowTemplate());
+      }
+
+      function showModal(url, callback){
+        $.get(url, function (data){
+          var modal = $('#modalDialog');
+          var modal_content =  modal.find('.modal-content');
+          modal_content.html(data);
+          if (callback) {
+            callback();
+          };
+          modal.modal('show');
+        });
+      }
+  
+      function taskDetailFormInit () {
+        var form = $('#modalDialog').find('form').eq(0);;
+        //validate init
+        form.validate({ 
+          rules : {
+            name : {
+              required : true,
+              maxlength: 100,
+            },
+            code : {
+              required : true,
+              maxlength: 100,
+            },
+            beginDate : {
+                required : true
+              },
+              endDate : {
+                required : true
+              }
+          },
+          errorClass: 'text-warning',
+          errorPlacement: function(error, element) {
+            error.css('position','absolute').css('font-size','xx-small').insertAfter(element);
+          },
+          submitHandler: function (form) {
+            ajaxFormSubmit(form, function(data, status) {
+              if(data.data) {
+                $.toaster({ title : '成功', priority : 'success', message : data.message });
+                $(form).parents('.modal').modal('hide');
+                reloadTaskDetailTable(getTmId());
+              }else {
+                $.toaster({ title : '失败', priority : 'warning', message : data.message });
+              }
+            });
+          }
+        });
+        
+        
+        var beginDate = form.find('#beginDate');
+        beginDate.datepicker({language:  'zh-CN', autoclose: true});
+        if (beginDate.val() == '') {
+          beginDate.datepicker('setDate', new Date());
+        };
+
+        var endDate = form.find('#endDate');
+        endDate.datepicker({language:  'zh-CN', autoclose: true});
+        if (endDate.val() == '') {
+          endDate.datepicker('setDate', new Date());
+        };
+        
+        //jstree init
+        $('div#parentName').click(function(){
+          var _this = $(this);
+          var jstree = $('#bdctg_tree');
+          if (!jstree.data('loaded')) {
+            $('#bdctg_tree').jstree({
+              'core' : {
+                'dblclick_toggle':false,
+                'check_callback' : true, 
+                'multiple' : false,
+                'data' : {
+                  'url' : function (node) {
+                    return '${ctx}/collect/agrProCtgsTreeNode/all';
+                  },
+                  'data' : function (node) {
+                    return { 'pid' : node.id == '#' ? 0 : node.id};
+                  }
+                }
+              }
+            }).on('select_node.jstree', function (e, data) {
+              var selectedNode =  data.instance.get_node(data.selected[0]);
+              $('div#parentName').text(selectedNode.text);
+              $('input#agrProCategory2').val(selectedNode.id);
+              $('#bdctg_tree').addClass('hide');
+            }).on('loaded.jstree', function () {
+              var _jstree = $('#bdctg_tree').jstree(true);
+              _jstree.create_node('#', {'id':'0', 'text':'作为顶级分类'}, 'first');
+              var cur_id = $('#taskDetailForm input[name="id"]').val();
+              var children_node = _jstree.get_node('#').children;
+              for(var i = 0; i < children_node.length; i++){ 
+                if(cur_id == children_node[i]){ 
+                  _jstree.disable_node(_jstree.get_node(cur_id));
+                  $(this).find('#'+cur_id).removeClass('jstree-closed').addClass('jstree-leaf');
+                } 
+              }
+            }).on('after_open.jstree',function (e, data){
+              var _jstree = data.instance;
+              var cur_id = $('#taskDetailForm input[name="id"]').val();
+              var children_node = data.node.children;
+              for(var i = 0; i < children_node.length; i++){ 
+                if(cur_id == children_node[i]){ 
+                  _jstree.disable_node(_jstree.get_node(cur_id));
+                  $(this).find('#'+cur_id).removeClass('jstree-closed').addClass('jstree-leaf');
+                } 
+              }
+            });
+            jstree.data('loaded', true);
+          }
+          jstree.toggleClass('hide');
+        });
+
+      }
+
+      //common
+      function ajaxFormSubmit(form, successCallback) {
+        var cfg = {
+          success: successCallback, // post-submit callback 
+          url: $(form).attr("action"),
+          type: $(form).attr("method") ? $(form).attr("method") : 'post', // 'get' or 'post', override for form's 'method' attribute 
+          dataType: 'json', // 'xml', 'script', or 'json' (expected server response type) 
+          contentType: 'application/json',
+          data: JSON.stringify($(form).serializeObject()),
+        };
+        $.ajax(cfg);
+      }
+
+      //js table
+        //js table action view
+        $('#taskDetailTable').on('click', 'a[name="edit"]', function () {
+          var _this = $(this);
+          var data_person = _this.parents('.data-row');
+          var url = '${ctx}/collect/taskDetail/view/edit?id=' +  data_person.attr('id');
+          showModal(url, taskDetailFormInit);
+        });
+
+        // row all selectos init
+        $('#dcp_row_all_selector').click(function (){
+          if($(this).prop('checked')){
+            getDcpRowSelectors().prop('checked',true);
+          }else{
+            getDcpRowSelectors().prop('checked',false);
+          }
+        })
+
+        function getDcpRowTemplate(node) {
+          var tamplate = '<tr id="{id}" class="data-row">' +
+                           '<th><input type="checkbox" class="js_dcp_row_selector">{_index}</th>\
+                            <td title="{agrProCategory2Name}">{agrProCategory2Name}</td>\
+                            <td title="{dataName}">{dataName}</td>\
+                            <td title="{timeframe}">{timeframe}</td>\
+                            <td title="{remark}">{remark}</td>\
+                            <td title="编辑"style="text-align: center;cursor: pointer;" >\
+                            <a class="green" name="edit"><i class="ace-icon fa fa-pencil-square-o bigger-150"></i></a>\
+                            </td>\
+                          </td>\
+                          </tr>';
+          return tamplate;
+        }
+
+        function ajaxRenderDcpTable(url, template){
+          $('#taskDetailTable').jstable('set_params',{
+                                                        url: url,
+                                                        template:template
+                                                      });
+        }
+
+        function getDcpRowSelectors(node){
+          return $('tbody .js_dcp_row_selector');
+        }
+
+        function getDcpSelectedRowsId(node){
+          return $('tbody .js_dcp_row_selector:checked').parents('tr').map(function(){
+            return $(this).prop('id');
+          });
+        }
+    </script>

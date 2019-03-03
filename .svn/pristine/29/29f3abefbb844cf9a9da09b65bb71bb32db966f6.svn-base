@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modeltable width="100%" high="100%">
+  <view><![CDATA[ 
+    select 
+      m.time,
+      m.price as mPrice,
+      r.price as rPrice
+    from
+      market_index_month m,
+      region_index_month r
+    where
+      m.market_code = '#{market}' and
+      r.region_code = '#{region}' and
+      date_format(m.time, '%Y') = '#{cdate}' and
+      m.crop_code = r.crop_code and
+      m.time = r.time
+      order by time
+  ]]></view>
+  <target name="time" dataType="str" label="时间" width="100px">time</target>
+	<target name="mPrice" dataType="num" label="价格" format=".##" sort="true" width="100px">mPrice</target>
+  <target name="rPrice" dataType="num" label="价格" format=".##" sort="true" width="100px">rPrice</target>
+</modeltable>

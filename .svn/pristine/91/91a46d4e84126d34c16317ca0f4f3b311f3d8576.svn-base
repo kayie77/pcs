@@ -1,0 +1,131 @@
+package com.yunforge.base.model;
+
+import java.util.Date;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.yunforge.common.util.DateUtil;
+import com.yunforge.core.model.IEntity;
+
+@Entity
+@Table(name = "NOTICEDIVISION")
+public class NoticeDivision implements IEntity<String> {
+	private static final long serialVersionUID = 1L;
+	
+	public static final int FLAG_READED = 1;
+	public static final int FLAG_UNREAD = 0;
+
+	@Id
+	@GeneratedValue(generator = "system-uuid")
+	@Column(nullable = false, updatable = false, length = 64)
+	private String id;
+
+	@JsonIgnore
+	@OneToOne(optional = false, cascade = CascadeType.REFRESH)
+	@JoinColumn(name = "noticeId", referencedColumnName = "id", unique = true, nullable = false)
+	private Notice notice;
+	
+	@JsonIgnore
+	@OneToOne(optional = false, cascade = CascadeType.REFRESH)
+	@JoinColumn(name = "divisionId", referencedColumnName = "id", unique = true, nullable = false)
+	private Division division;
+	
+	@Column(name = "readFlag")
+	private Integer readFlag;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "readDate")
+	private Date readDate;
+	
+	
+	
+	public String getId() {
+		return id;
+	}
+
+
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+
+
+	public Notice getNotice() {
+		return notice;
+	}
+
+
+
+	public void setNotice(Notice notice) {
+		this.notice = notice;
+	}
+
+
+
+	public Division getDivision() {
+		return division;
+	}
+
+
+
+	public void setDivision(Division division) {
+		this.division = division;
+	}
+
+
+
+	public Integer getReadFlag() {
+		return readFlag;
+	}
+
+
+
+	public void setReadFlag(Integer readFlag) {
+		this.readFlag = readFlag;
+	}
+
+
+
+	public Date getReadDate() {
+		return readDate;
+	}
+
+
+
+	public void setReadDate(Date readDate) {
+		this.readDate = readDate;
+	}
+
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		NoticeDivision other = (NoticeDivision) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (id != other.id) {
+			return false;
+		}
+		return true;
+	}
+
+}

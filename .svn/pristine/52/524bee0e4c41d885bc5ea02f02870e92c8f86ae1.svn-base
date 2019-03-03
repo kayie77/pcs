@@ -1,0 +1,93 @@
+package com.yunforge.collect.service.impl;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
+import com.yunforge.collect.dao.AgrProCategory2Dao;
+import com.yunforge.collect.dao.PersonGroupDao;
+import com.yunforge.collect.dao.TaskDetailDao;
+import com.yunforge.collect.dao.TaskMainDao;
+import com.yunforge.collect.model.TaskDetail;
+import com.yunforge.collect.model.TaskMain;
+import com.yunforge.collect.model.AgrProCategory2;
+import com.yunforge.collect.model.PersonGroup;
+import com.yunforge.collect.service.TaskDetailManager;
+import com.yunforge.srpingside.persitence.DynamicSpecifications;
+import com.yunforge.srpingside.persitence.SearchFilter;
+import com.yunforge.srpingside.persitence.SearchFilter.Operator;
+
+@Service("TaskDetailManager")
+public class TaskDetailManagerImpl implements TaskDetailManager{
+	
+	final static Log log = LogFactory.getLog(TaskDetailManagerImpl.class);
+	
+	@Autowired
+	private TaskDetailDao taskDetailDao;
+	
+	@Autowired
+	private TaskMainDao taskMainDao;
+	
+	@Autowired
+	private AgrProCategory2Dao agrProCategory2Dao;
+	
+	@PersistenceContext
+	private EntityManager em;
+	
+	@Override
+	public TaskDetail getTaskDetail(String id) {
+		// TODO Auto-generated method stub
+		return taskDetailDao.findOne(id);
+	}
+
+	//获得信息
+	@Override
+	public Page<TaskDetail> getTaskDetail(String tmId, Map<String, Object> searchParams,Pageable pageable) {
+		Map<String, SearchFilter> filters = SearchFilter.parse(searchParams);
+		filters.put("taskMain.id", new SearchFilter("taskMain.id", Operator.EQ, tmId));
+		Specification<TaskDetail> spec = DynamicSpecifications.bySearchFilter(filters.values(), TaskDetail.class);
+		return taskDetailDao.findAll(spec, pageable);
+	}
+
+	//新增
+	@Override
+	public TaskDetail newTaskDetail(TaskDetail taskDetail) {
+		TaskMain taskMain = taskDetail.getTaskMain();
+		AgrProCategory2 agrProCategory2 = taskDetail.getAgrProCategory2();
+		if (taskMain != null){
+			taskMain = taskMainDao.findOne(taskMain.getId());
+			taskDetail.setTaskMain(taskMain);
+		}
+		
+		if (agrProCategory2 != null){
+			agrProCategory2 = agrProCategory2Dao.findOne(agrProCategory2.getId());
+			taskDetail.setAgrProCategory2(agrProCategory2);
+		}
+		return taskDetailDao.save(taskDetail);
+	}
+	
+
+	//删除
+	@Override
+	public void delTaskDetails(String[] id) throws Exception {
+		// TODO Auto-generated method stub
+		for (int i = 0; i < id.length; i++) {
+			TaskDetail taskDetail = getTaskDetail(id[i]);
+			em.refresh(taskDetail);
+			em.remove(taskDetail);
+		}
+	}
+
+}

@@ -1,0 +1,164 @@
+package com.yunforge.analysis.controller;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletRequest;
+
+import net.sf.json.JSONObject;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Transformer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.yunforge.base.service.AnalysisManager;
+import com.yunforge.srpingside.Servlets;
+
+@Controller
+@RequestMapping("/analysis")
+@SuppressWarnings({ "rawtypes", "unchecked" })
+public class AgrAnalysisController {
+	
+	@Autowired AnalysisManager analysisManager;
+	/**************** view controller *******************/
+
+	/**
+	 * 分析页面
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/index", method = RequestMethod.GET)
+	public String Analysis() {
+		return "analysis/jsontest";
+	}
+
+	/**
+	 * 获取农产品类别 主要是根据数据库查询 格式化成json数据
+	 * 
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	@RequestMapping(value = "/ctgs")
+	public @ResponseBody JSONObject[] getCtype() throws JsonProcessingException {
+		JSONObject[] ctgs = new JSONObject[2];
+		ctgs[0] = new JSONObject();
+		ctgs[1] = new JSONObject();
+		ctgs[0].put("code", "1000");
+		ctgs[0].put("name", "水果");
+		ctgs[1].put("code", "1001");
+		ctgs[1].put("name", "蔬菜");
+		return ctgs;
+	}
+
+	/**
+	 * 根据农产品类别获取农产品 获取的数据格式化成json数据
+	 * 
+	 * @param ctype
+	 *            农产品类别
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	@RequestMapping(value = "/ctgs/{ctg}/products")
+	public @ResponseBody JSONObject[] getCNameByCType(@PathVariable("ctg") String ctg)
+			throws JsonProcessingException {
+		JSONObject[] products = new JSONObject[4];
+		products[0] = new JSONObject();
+		products[1] = new JSONObject();
+		products[2] = new JSONObject();
+		products[3] = new JSONObject();
+		if ("1000".equals(ctg)) {
+			products[0].put("code", "10000");
+			products[0].put("name", "香蕉");
+			products[1].put("code", "10001");
+			products[1].put("name", "荔枝");
+			products[2].put("code", "10002");
+			products[2].put("name", "苹果");
+			products[3].put("code", "10003");
+			products[3].put("name", "香蕉");
+		}
+		if ("1001".equals(ctg)) {
+			products[0].put("code", "10010");
+			products[0].put("name", "萝卜");
+			products[1].put("code", "10011");
+			products[1].put("name", "芥菜");
+			products[2].put("code", "10012");
+			products[2].put("name", "茄子");
+			products[3].put("code", "10013");
+			products[3].put("name", "黄瓜");
+		}
+		return products;
+	}
+	
+
+	/**
+	 * 获取区域 格式化成json数据
+	 * 
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	@RequestMapping(value = "/regions")
+	public @ResponseBody JSONObject[] getRegion() throws JsonProcessingException {
+		JSONObject[] regions = new JSONObject[2];
+		regions[0] = new JSONObject();
+		regions[1] = new JSONObject();
+		regions[0].put("code", "450000");
+		regions[0].put("name", "南宁市");
+		regions[1].put("code", "450001");
+		regions[1].put("name", "柳州市");
+		return regions;
+	}
+
+	/**
+	 * 根据区域名称获取该区域的市场 格式化成json数据
+	 * 
+	 * @param region
+	 *            某个区域的名称
+	 * @return
+	 * @throws JsonProcessingException
+	 */
+	@RequestMapping(value = "/regions/{region}/markets")
+	public @ResponseBody Collection<JSONObject> getMarketByRegion(@PathVariable("region") String region
+			, ServletRequest request)
+			throws JsonProcessingException {
+		Map<String, Object> searchParams = Servlets.getParametersStartingWith(request, "");
+		List<Object[]> datas = analysisManager.getMarkets(region, searchParams);
+		Collection<JSONObject> markets = CollectionUtils.collect(datas, new Transformer() {
+			@Override
+			public Object transform(Object object) {
+				Object[] marketObject = (Object[])object;
+				JSONObject market = new JSONObject();
+				market.put("code", marketObject[0]);
+				market.put("name", marketObject[1]);
+				return market;
+			}
+		});
+		return markets;
+//		markets[0] = new JSONObject();
+//		markets[1] = new JSONObject();
+//		if ("450000".equals(region)) {
+//			markets[0].put("code", "10000");
+//			markets[0].put("name", "市场1");
+//			markets[1].put("code", "10001");
+//			markets[1].put("name", "市场2");
+//		}
+//		if ("450001".equals(region)) {
+//			markets[0].put("code", "10010");
+//			markets[0].put("name", "市场3");
+//			markets[1].put("code", "10011");
+//			markets[1].put("name", "市场四");
+//		}
+		//return datas;
+	}
+	
+	
+
+}

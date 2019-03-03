@@ -1,0 +1,135 @@
+package com.yunforge.collect.service.impl;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.yunforge.collect.dto.TreeNode2;
+import com.yunforge.collect.dao.AgrProCategory2Dao;
+import com.yunforge.collect.model.AgrProCategory2;
+import com.yunforge.collect.service.AgrProCategory2Manager;
+
+
+@Service("AgrProCategory2Manager")
+public class AgrProCategory2ManagerImpl implements AgrProCategory2Manager{
+	
+	final static Log log = LogFactory.getLog(AgrProCategory2ManagerImpl.class);
+	
+	@Autowired
+	private AgrProCategory2Dao agrProCategory2Dao;
+	
+	@PersistenceContext
+	private EntityManager em;
+
+	@Override
+	public List<AgrProCategory2> getChildrenAgrProCategory2(String pid, Integer state) {
+		if(state == null){
+			return agrProCategory2Dao.findByParent_IdOrderBySortAscCodeAsc(pid);
+		}else{
+			return agrProCategory2Dao.findByParent_IdAndStateOrderBySortAscCodeAsc(pid,state);
+		}
+	}
+	
+	@Override
+	public List<AgrProCategory2> setNodeType(List<AgrProCategory2> ctgList) {
+		// TODO Auto-generated method stub
+		for (int i = 0; i < ctgList.size(); i++) {
+			AgrProCategory2 ctg = ctgList.get(i);
+			if(isLeaf(ctg.getId())){
+				ctg.setNodeType("leaf");
+			}else{
+				ctg.setNodeType("node");
+			}
+		}
+		return ctgList;
+	}
+	
+	@Override
+	public boolean isLeaf(String id) {
+		// TODO Auto-generated method stub
+		int children = agrProCategory2Dao.getChildrenCount(id);
+		return children > 0 ? false : true;
+	}
+	
+	@Override
+	public AgrProCategory2 getAgrProCategory2(String id) {
+		// TODO Auto-generated method stub
+		return agrProCategory2Dao.findOne(id);
+	}
+	
+	@Override
+	public AgrProCategory2 saveAgrProCategory2(AgrProCategory2 object) {
+		// TODO Auto-generated method stub
+		return agrProCategory2Dao.save(object);
+	}
+	
+	@Override
+	public int batchEnableOrDisable(String rootId, Integer state) {
+		// TODO Auto-generated method stub
+		return agrProCategory2Dao.isEnableCascadeUpdate(rootId, state);
+	}
+	
+	@Override
+	public AgrProCategory2 newAgrProCategory2(AgrProCategory2 agrProCategory2) {
+		// TODO Auto-generated method stub
+		AgrProCategory2 parent = agrProCategory2.getParent();
+		if (parent != null) {
+			parent = agrProCategory2Dao.findOne(parent.getId());
+			agrProCategory2.setParent(parent);
+		}
+		return saveAgrProCategory2(agrProCategory2);
+	}
+	
+	@Override
+	public List<TreeNode2> getChildrenAgrProCategory2TreeNode(String pid, Integer state, String expanded) {
+		// TODO Auto-generated method stub
+		List<AgrProCategory2> apcList = null;
+		apcList = getChildrenAgrProCategory2(pid, state);
+		return toTreeNode(apcList, expanded);
+	}
+	
+	private List<TreeNode2> toTreeNode(List<AgrProCategory2> apcList, String expanded){
+		List<TreeNode2> cList = new ArrayList();
+		Iterator<AgrProCategory2> iterator = apcList.iterator();
+		while (iterator.hasNext()) {
+			AgrProCategory2 apc = iterator.next();
+			TreeNode2 ctgTreeNode = null;
+			if (expanded == null || "".equals(expanded)) {
+				ctgTreeNode = new TreeNode2(apc.getId(), apc.getName(), isLeaf(apc.getId()));
+			}else if ("true".equals(expanded)) {
+				ctgTreeNode = new TreeNode2(apc.getId(), apc.getName(), isLeaf(apc.getId()), true);
+			}
+			log.info("tree node:"+ apc.getId() + " " +apc.getName());
+			cList.add(ctgTreeNode);
+		}
+		return cList;
+	}
+	
+	@Override
+	public void delAgrProCategory2(String id) throws Exception {
+		// TODO Auto-generated method stub
+		AgrProCategory2 apc = getAgrProCategory2(id);
+		em.refresh(apc);
+		em.remove(apc);
+	}
+	
+	@Override
+	public List<AgrProCategory2> searchAgrProCategory2ByName(String name) {
+		// TODO Auto-generated method stub
+		if(name.trim().equals("")){
+			return getChildrenAgrProCategory2("0", null);
+		}
+		
+		String searchPattern = "%" + name +"%";
+		return agrProCategory2Dao.findByNameLike(searchPattern);
+	}
+	
+}

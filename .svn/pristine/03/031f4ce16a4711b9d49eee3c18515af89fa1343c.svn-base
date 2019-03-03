@@ -1,0 +1,19 @@
+package com.yunforge.collect.dao;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+
+import com.yunforge.collect.model.DataReoprtedDetail;
+
+public interface DataReoprtedDetailDao extends JpaRepository<DataReoprtedDetail, String>,JpaSpecificationExecutor<DataReoprtedDetail>{
+
+	@Query(value=" select distinct odo.reriod " +
+				  " from oper_datareoprtedmain odo " +
+				  " where odo.taskmain = ?1 " +
+				  " order by odo.reriod desc  ",nativeQuery=true)
+	public List<String> findDatareoprtedmainByTaskMainId(String taskMainId);
+}
+

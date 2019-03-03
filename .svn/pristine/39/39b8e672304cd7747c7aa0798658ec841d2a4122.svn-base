@@ -1,0 +1,186 @@
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8"%>
+<%@ include file="/WEB-INF/jsp/common/taglibs.jsp"%>
+<c:set var="ctx" value="${pageContext.request.contextPath}"></c:set>
+<link href="${ctx}/assets/css/mgr-common.css" rel="stylesheet">
+<div class="container-fluid">
+	<div class="row">
+		<!-- <div class="btn-group btn-group-sm">
+			<button type="button" class="btn  btn-danger">保存数据</button>
+			<button type="button" class="btn btn-primary">校验数据</button>
+			<button type="button" class="btn btn-success">上报数据</button>
+		</div> -->
+
+		<!-- right -->
+		<div class="col-xs-12" style="padding: 0px 2px 0px 5px;">
+
+			<!-- table -->
+			<div class="fix-table-container">
+				<table class="table table-bordered table-hover js-table fix-table "
+					id="taskDetailTable">
+					<thead>
+						<tr>
+							<th class="text-left" style="width: 100px;">序号</th>
+							<th class="text-center" style="width: 200px;">农产品</th>
+							<th class="text-center" style="width: 200px;">指标</th>
+							<th class="text-center" style="width: 200px;">指标值</th>
+							<th class="text-center" style="">备注</th>
+							<th class="text-center hide" style="width: 30px;" >code</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<button onclick="detailForm();" class="btn btn-success"
+				style="float: right;">保存</button>
+		</div>
+	</div>
+</div>
+<script src="${ctx}/assets/jquery/plugins/jstree/jstree.min.js"></script>
+<script src="${ctx}/assets/jquery/plugins/lixi_common/js-table.js"></script>
+<script src="${ctx}/assets/jquery/plugins/lixi_common/ajax_render.js"></script>
+<script src="${ctx}/assets/jquery/plugins/lixi_common/utils.js"></script>
+<script src="${ctx}/assets/bootstrap/plugins/bootbox/bootbox.min.js"></script>
+<script>
+	$(document).ready(function() {
+
+		$('#taskDetailTable').jstable({
+			pager : true,
+			template : getDcpRowTemplate()
+		});
+		reloadTaskDetailTable('${dmId}');
+		
+		$('#taskDetailTable').data('dmId', '${dmId}');
+		//setTimeout("checkEditable()",1000)
+		
+		 $('#taskDetailTable').on('finish.table.jstable', function () {
+			 checkEditable()
+           })
+	});
+
+	function getDmId() {
+		return $('#taskDetailTable').data('dmId');
+	}
+	
+	function checkEditable() {
+		var t=$('#taskDetailTable');
+		var tb=t.children("tbody");
+		tb.children("tr").each(function(){
+			var edit=$(this).find(".editable").first().text();
+			if(edit!=1){
+				$(this).find(".indexValue").first().attr("disabled","true");
+
+			}
+		  });
+		
+		/* for (var i = 0; i < trs.length; i++) {
+			console.log(trs.text());
+		} */
+		//return $('#taskDetailTable').data('dmId');
+	}
+
+
+	function reloadTaskDetailTable(dmId) {
+		ajaxRenderDcpTable('${ctx}/collect/dataReoprtedDetail?dmId=' + dmId,
+				getDcpRowTemplate());
+	}
+
+	//common
+	function ajaxFormSubmit(form, successCallback) {
+		var cfg = {
+			success : successCallback, // post-submit callback 
+			url : $(form).attr("action"),
+			type : $(form).attr("method") ? $(form).attr("method") : 'post', // 'get' or 'post', override for form's 'method' attribute 
+			dataType : 'json', // 'xml', 'script', or 'json' (expected server response type) 
+			contentType : 'application/json',
+			data : JSON.stringify($(form).serializeObject()),
+		};
+		$.ajax(cfg);
+	}
+
+	function getDcpRowTemplate(node) {
+		var tamplate = '<tr id="{id}" class="data-row detail-row">'
+				+ '<th>{_index}</th>\
+                            <td title="{agrProCategory2Name}">{agrProCategory2Name}</td>\
+                            <td title="{dataID}">{dataID}</td>\
+                            <td><input class="indexValue" type="text" id="data" name="data"   value="{data}" /></td>\
+                            <td title="{remark}">{remark}</td>\
+                            <td  title="{editable}" class="editable hide">{editable}</td>\
+                          </tr>';
+		return tamplate;
+	}
+
+	function ajaxRenderDcpTable(url, template) {
+		$('#taskDetailTable').jstable('set_params', {
+			url : url,
+			template : template
+		});
+	}
+
+	function getDcpSelectedRowsId(node) {
+		return $('tbody .detail-row').map(function() {
+			return $(this).prop('id');
+		});
+	}
+
+	function getDcpSelectedRowsData(node) {
+		return $('tbody .detail-row input').map(function() {
+			return $(this).prop('value');
+		});
+	}
+
+	function detailForm() {
+		var ids = getDcpSelectedRowsId();
+		var datas = getDcpSelectedRowsData();
+
+		bootbox.confirm('确定要提交吗?', function(result) {
+			if (result) {
+				idParams = ids.map(function(index, id) {
+					return 'id=' + id;
+				}).toArray().join('&');
+
+				dataParams = datas.map(function(index, data) {
+					return 'data=' + data;
+				}).toArray().join('&');
+
+				var url = '${ctx}/collect/dataReoprtedDetail?' + idParams + '&'
+						+ dataParams;
+				$.post(url, function(result) {
+					if (result.status) {
+						$.toaster({
+							title : '成功',
+							priority : 'success',
+							message : result.message
+						});
+						reloadTaskDetailTable(getDmId());
+					} else {
+						$.toaster({
+							title : '失败',
+							priority : 'warning',
+							message : result.message
+						});
+					}
+				});
+			}
+		});
+
+		/* var id = $('#taskDetailTable').find('.data-row').eq(0).attr('id');
+		var data = document.getElementById("data").value; */
+		/* var url = '${ctx}/collect/taskDetail?id=' + id +'&data=' + data;
+		$.get(url, function(result) {
+			if (result.status) {
+				$.toaster({
+					title : '成功',
+					priority : 'success',
+					message : result.message
+				});
+			} else {
+				$.toaster({
+					title : '失败',
+					priority : 'warning',
+					message : result.message
+				});
+			}
+		}); */
+	}
+</script>

@@ -1,0 +1,242 @@
+package com.yunforge.collect.model;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.yunforge.collect.jackson.serializer.CustomJsonDateTimeSerializer;
+import com.yunforge.collect.jackson.serializer.ExecuteTypeSerializer;
+import com.yunforge.collect.jackson.serializer.ReceiveStatusSerializer;
+import com.yunforge.collect.jackson.serializer.ReportedStatusSerializer;
+import com.yunforge.core.annotation.MethodRemark;
+
+@Entity
+@Table(name = "Oper_DataReoprtedMain")
+public class DataReoprtedMain {
+
+	@Id
+	@GeneratedValue(generator = "system-uuid")
+	@Column(name="ID", nullable = false, updatable = false, length = 100)
+	private String id;
+	
+	@Column(name="RERIOD") //期数    [联合主键 1]
+	private Integer period;
+	
+	@Column(name="NAME", nullable = false, length = 100)
+	private String taskName; //任务名称
+	
+	@Column(name="DESCRIPTION",length = 500)
+	private String description; //描述
+	
+	@Column(name="REMARK", length = 500)
+	private String remark;//备注
+	
+	@JsonSerialize(using = ExecuteTypeSerializer.class)
+	@Column(name="EXECUTETYPE")
+	private Integer executeType;//执行类型  [联合主键 2]
+	
+	@JsonSerialize(using = ReceiveStatusSerializer.class)
+	@Column(name="RECEIVESTATUS")
+	private Integer receiveStatus = RECEIVESTATUS.NotRECEIVE;//领取状态
+	
+	@Column(name="RECEIVETIME", nullable = true, length = 30)
+	private String receiveTime;//领取时间
+	
+	@JsonSerialize(using = ReportedStatusSerializer.class)
+	@Column(name="REPORTEDSTATUS")
+	private Integer reportedStatus = REPORTEDSTATUS.NotREPORTED;//上报状态
+	
+	@Column(name="REPORTEDTIME", nullable = true, length = 30)
+	private String reportedTime;//上报时间
+	
+	@Column( name="EDITABLE") //可否编辑
+	private Integer editable=0;
+	
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name = "PERSON")
+	private DataCollectPerson person ;//人外键 
+	
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name = "TASKMAIN")
+	private TaskMain taskMain;//任务外键 
+	
+	@OneToMany(cascade=CascadeType.REMOVE, mappedBy="dataReoprtedMain", fetch=FetchType.LAZY)  
+	private List<DataReoprtedDetail> dataReoprtedDetails = new ArrayList<DataReoprtedDetail>();
+
+	@Transient
+	private String reriod;
+
+	@Transient
+	private String name;
+	
+	public Integer getEditable() {
+		return editable;
+	}
+
+	public void setEditable(Integer editable) {
+		this.editable = editable;
+	}
+
+	public static final class RECEIVESTATUS{
+		public static final int NotRECEIVE  = 0;
+		public static final int RECEIVE = 1;
+	}
+	
+	public static final class REPORTEDSTATUS{
+		public static final int NotREPORTED  = 0;
+		public static final int REPORTED = 1;
+	}
+	
+	public static final class EXECUTETYPE{
+		public static final int DAY  = 1;
+		public static final int WEEK = 2;
+		public static final int MONTHS  = 3;
+	}
+
+	@JsonProperty("taskMainName")
+	public String getTaskMainName(){
+		return getTaskMain().getName();
+	}
+	
+	@JsonProperty("taskMainId")
+	public String getTaskMainiD(){
+		return getTaskMain().getId();
+	}
+	
+	@JsonProperty("taskMainCode")
+	public String getTaskMainCode(){
+		return getTaskMain().getCode();
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public TaskMain getTaskMain() {
+		return taskMain;
+	}
+
+	public void setTaskMain(TaskMain taskMain) {
+		this.taskMain = taskMain;
+	}
+
+	public Integer getReceiveStatus() {
+		return receiveStatus;
+	}
+
+	public void setReceiveStatus(Integer receiveStatus) {
+		this.receiveStatus = receiveStatus;
+	}
+
+	public Integer getReportedStatus() {
+		return reportedStatus;
+	}
+
+	public void setReportedStatus(Integer reportedStatus) {
+		this.reportedStatus = reportedStatus;
+	}
+
+	public String getReceiveTime() {
+		return receiveTime;
+	}
+
+	public void setReceiveTime(String receiveTime) {
+		this.receiveTime = receiveTime;
+	}
+
+	public String getReportedTime() {
+		return reportedTime;
+	}
+
+	public void setReportedTime(String reportedTime) {
+		this.reportedTime = reportedTime;
+	}
+
+	public Integer getPeriod() {
+		return period;
+	}
+
+	public void setPeriod(Integer period) {
+		this.period = period;
+	}
+
+	public DataCollectPerson getPerson() {
+		return person;
+	}
+
+	public void setPerson(DataCollectPerson person) {
+		this.person = person;
+	}
+
+	public String getTaskName() {
+		return taskName;
+	}
+
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getRemark() {
+		return remark;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
+	public Integer getExecuteType() {
+		return executeType;
+	}
+
+	public void setExecuteType(Integer executeType) {
+		this.executeType = executeType;
+	}
+
+	public String getReriod() {
+		return reriod;
+	}
+
+	public void setReriod(String reriod) {
+		this.reriod = reriod;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	
+	
+
+}

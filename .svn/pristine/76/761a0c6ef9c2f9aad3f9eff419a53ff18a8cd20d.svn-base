@@ -1,0 +1,209 @@
+package com.yunforge.collect.dao.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
+import com.yunforge.collect.model.DataReoprtedMain;
+import com.yunforge.collect.model.TaskMain;
+import com.yunforge.common.bean.GridBean;
+import com.yunforge.common.util.PageUtil;
+import com.yunforge.common.util.StringUtil;
+
+public class TaskMainDaoImpl {
+
+	@PersistenceContext
+	private EntityManager em;
+	
+	public Page<DataReoprtedMain> queryHistoryDetail(Map<String, Object> searchParams,Pageable pageable) {
+
+		String taskMainId = (String)searchParams.get("taskMainId");
+		String personId = (String)searchParams.get("personId");
+		String reriod = (String)searchParams.get("reriod");
+		
+		//查总数
+		StringBuffer sql = new StringBuffer();
+		sql.append(" select count(odo.id) ");
+		sql.append(" from oper_datareoprtedmain odo,oper_datacollectperson ddc ");
+		sql.append(" where odo.person = ddc.id ");
+		sql.append(" and odo.taskmain = '"+taskMainId+"' ");
+		if(StringUtil.notEmpty(reriod)) {
+			sql.append(" and odo.reriod = '"+reriod+"' ");
+		}
+		if(StringUtil.notEmpty(personId)) {
+			sql.append(" and odo.person = '"+personId+"' ");
+		}
+		Query query = em.createNativeQuery(sql.toString());
+		
+		List list = query.getResultList();
+		int count = StringUtil.getCount(list);
+		
+		GridBean gridBean = new PageUtil().getGridBean((pageable.getPageNumber()+1)+"",pageable.getPageSize(),count);
+		
+		//分页查询
+		sql = new StringBuffer();
+		sql.append(" select odo.id,odo.reriod,ddc.name,odo.reportedstatus ");
+		sql.append(" from oper_datareoprtedmain odo,oper_datacollectperson ddc ");
+		sql.append(" where odo.person = ddc.id ");
+		sql.append(" and odo.taskmain = '"+taskMainId+"' ");
+		if(StringUtil.notEmpty(reriod)) {
+			sql.append(" and odo.reriod = '"+reriod+"' ");
+		}
+		if(StringUtil.notEmpty(personId)) {
+			sql.append(" and odo.person = '"+personId+"' ");
+		}
+		sql.append(" order by odo.reriod desc ");
+		sql.append(" limit " + gridBean.getLimitBegin() + "," + gridBean.getLimitEnd());
+		query = em.createNativeQuery(sql.toString());
+
+		List<DataReoprtedMain> resultList = new ArrayList<DataReoprtedMain>();
+		list = query.getResultList();
+
+		//封装数据
+		for(int i = 0;i < list.size();i++) {
+			
+			DataReoprtedMain dataReoprtedMain = new DataReoprtedMain();
+			Object[] obs = (Object[])list.get(i);
+			
+//			select odo.id,odo.reriod,ddc.name,odo.reportedstatus
+			int col = 0;
+			dataReoprtedMain.setId(StringUtil.getString(obs[col++]));
+			dataReoprtedMain.setReriod(StringUtil.getString(obs[col++]));
+			dataReoprtedMain.setName(StringUtil.getString(obs[col++]));
+			dataReoprtedMain.setReportedStatus(StringUtil.getInt(obs[col++],0));
+			dataReoprtedMain.setTaskMain(new TaskMain());
+			
+			resultList.add(dataReoprtedMain);
+		}
+		
+		PageImpl p = new PageImpl(resultList,pageable,count);
+		return p;
+	}
+	
+	public int getSelfTaskMainCount(String personId)
+	{
+		//查总数
+		StringBuffer sql = new StringBuffer();
+		sql.append(" SELECT ");
+		sql.append(" 	count(otm.id) ");
+		sql.append(" FROM ");
+		sql.append(" 	oper_taskmain otm ");
+		sql.append(" WHERE ");
+		sql.append(" 	otm.id IN ( ");
+		sql.append(" 		SELECT ");
+		sql.append(" 			otg.taskmain ");
+		sql.append(" 		FROM ");
+		sql.append(" 			oper_taskgive otg ");
+		sql.append(" 		WHERE ");
+		sql.append(" 			otg.datacollectperson = '"+personId+"' ");
+		sql.append(" 	) ");
+		sql.append(" AND otm.state = '" +TaskMain.STATE.INUSE+ "' ");
+		Query query = em.createNativeQuery(sql.toString());
+		
+		List list = query.getResultList();
+		return StringUtil.getCount(list);
+	}
+	
+	public Page<TaskMain> getSelfTaskMain(Pageable pageable,Map<String, Object> searchParams) {
+		
+		String personId = (String)searchParams.get("personId");
+		String code = (String)searchParams.get("code");
+		String name = (String)searchParams.get("name");
+		String state = (String)searchParams.get("state");
+		
+		//查总数
+		StringBuffer sql = new StringBuffer();
+		sql.append(" SELECT ");
+		sql.append(" 	count(otm.id) ");
+		sql.append(" FROM ");
+		sql.append(" 	oper_taskmain otm ");
+		sql.append(" WHERE ");
+		sql.append(" 	otm.id IN ( ");
+		sql.append(" 		SELECT ");
+		sql.append(" 			otg.taskmain ");
+		sql.append(" 		FROM ");
+		sql.append(" 			oper_taskgive otg ");
+		sql.append(" 		WHERE ");
+		sql.append(" 			otg.datacollectperson = '"+personId+"' ");
+		sql.append(" 	) ");
+		if(StringUtil.notEmpty(state)) {
+			sql.append(" AND otm.state = '" +state+ "' ");
+		}
+		if(StringUtil.notEmpty(code)) {
+			sql.append(" AND otm.code like '%" +code+ "%' ");
+		}
+		if(StringUtil.notEmpty(name)) {
+			sql.append(" AND otm.name like '%" +name+ "%' ");
+		}
+		Query query = em.createNativeQuery(sql.toString());
+		
+		List list = query.getResultList();
+		int count = StringUtil.getCount(list);
+		
+		GridBean gridBean = new PageUtil().getGridBean((pageable.getPageNumber()+1)+"",pageable.getPageSize(),count);
+		
+		//分页查询
+		sql = new StringBuffer();
+		sql.append(" SELECT ");
+		sql.append(" 	otm.id,otm.begindate,otm.code,otm.createdon,otm.description,otm.enddate,otm.executetype,otm.name,otm.remark,otm.state,otm.createdby ");
+		sql.append(" FROM ");
+		sql.append(" 	oper_taskmain otm ");
+		sql.append(" WHERE ");
+		sql.append(" 	otm.id IN ( ");
+		sql.append(" 		SELECT ");
+		sql.append(" 			otg.taskmain ");
+		sql.append(" 		FROM ");
+		sql.append(" 			oper_taskgive otg ");
+		sql.append(" 		WHERE ");
+		sql.append(" 			otg.datacollectperson = '"+personId+"' ");
+		sql.append(" 	) ");
+		if(StringUtil.notEmpty(state)) {
+			sql.append(" AND otm.state = '" +state+ "' ");
+		}
+		if(StringUtil.notEmpty(code)) {
+			sql.append(" AND otm.code like '%" +code+ "%' ");
+		}
+		if(StringUtil.notEmpty(name)) {
+			sql.append(" AND otm.name like '%" +name+ "%' ");
+		}
+		sql.append(" order by otm.createdon desc ");
+		sql.append(" limit " + gridBean.getLimitBegin() + "," + gridBean.getLimitEnd());
+		query = em.createNativeQuery(sql.toString());
+
+		List<TaskMain> resultList = new ArrayList<TaskMain>();
+		list = query.getResultList();
+
+		//封装数据
+		for(int i = 0;i < list.size();i++) {
+			
+			TaskMain taskMain = new TaskMain();
+			Object[] obs = (Object[])list.get(i);
+			
+			int col = 0;
+			taskMain.setId(StringUtil.getString(obs[col++]));
+			taskMain.setBeginDate(StringUtil.getDate(obs[col++] + ""));
+			taskMain.setCode(StringUtil.getString(obs[col++]));
+			taskMain.setCreatedOn(StringUtil.getString(obs[col++]));
+			taskMain.setDescription(StringUtil.getString(obs[col++]));
+			taskMain.setEndDate(StringUtil.getDate(obs[col++] + ""));
+			taskMain.setExecuteType(StringUtil.getInt(obs[col++],0));
+			taskMain.setName(StringUtil.getString(obs[col++]));
+			taskMain.setRemark(StringUtil.getString(obs[col++]));
+			taskMain.setState(StringUtil.getInt(obs[col++],0));
+			taskMain.setCreatedBy(null);
+			
+			resultList.add(taskMain);
+		}
+		
+		PageImpl p = new PageImpl(resultList,pageable,count);
+		return p;
+	}
+}

@@ -1,0 +1,298 @@
+package com.yunforge.collect.service.impl;
+
+import java.text.DecimalFormat;
+import java.text.Format;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
+import org.eclipse.persistence.internal.jpa.querydef.PredicateImpl;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
+import com.yunforge.base.model.Person;
+import com.yunforge.base.model.User;
+import com.yunforge.collect.dao.AgrProCategoryDao;
+import com.yunforge.collect.dao.DataReoprtedMainDao;
+import com.yunforge.collect.model.DataReoprtedDetail;
+import com.yunforge.collect.model.GropInfo;
+import com.yunforge.collect.model.PersonGroup;
+import com.yunforge.collect.model.DataCollectPerson;
+import com.yunforge.collect.model.DataCollectPerson_;
+import com.yunforge.collect.model.DataReoprtedMain;
+import com.yunforge.collect.model.DataReoprtedMain_;
+import com.yunforge.collect.model.TaskMain;
+import com.yunforge.collect.model.TaskMain_;
+import com.yunforge.collect.service.DataReoprtedMainManager;
+import com.yunforge.collect.util.CronUtil;
+import com.yunforge.collect.util.PeriodUtil;
+import com.yunforge.common.Constants;
+import com.yunforge.common.util.DateUtil;
+import com.yunforge.common.util.StringUtil;
+import com.yunforge.srpingside.persitence.DynamicSpecifications;
+import com.yunforge.srpingside.persitence.SearchFilter;
+
+@Service("DataReoprtedMainManager")
+public class DataReoprtedMainManagerImpl implements DataReoprtedMainManager {
+
+	final static Log log = LogFactory.getLog(DataReoprtedMainManagerImpl.class);
+
+	@Autowired
+	private DataReoprtedMainDao dataReoprtedMainDao;
+
+	// 新增
+	@Override
+	public DataReoprtedMain newDataReoprtedMain(
+			DataReoprtedMain dataReoprtedMain, TaskMain taskMain) {
+		DataReoprtedMain result = dataReoprtedMainDao.findTaskMainById(taskMain
+				.getId());
+		if (result != null) {
+			result = null;
+		} else {
+			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
+			dataReoprtedMain.setTaskMain(taskMain);
+			dataReoprtedMain.setReceiveStatus(1);// 写入领取状态
+			dataReoprtedMain.setReceiveTime(df.format(new Date()));// new
+																	// Date()为获取当前系统时间
+			result = dataReoprtedMainDao.save(dataReoprtedMain);
+		}
+		return result;
+	}
+
+	// 动态获取信息
+	@Override
+	public Page<DataReoprtedMain> getDataReoprtedMain(
+			Map<String, Object> searchParams, Pageable pageable) {
+		Map<String, SearchFilter> filters = SearchFilter.parse(searchParams);
+		Specification<DataReoprtedMain> spec = DynamicSpecifications
+				.bySearchFilter(filters.values(), DataReoprtedMain.class);
+		return dataReoprtedMainDao.findAll(spec, pageable);
+	}
+
+	// 任务上报
+	@Override
+	public void taskReported(DataReoprtedMain dataReoprtedMain) {
+		dataReoprtedMain.setReportedStatus(1);//改为已上报
+		dataReoprtedMainDao.save(dataReoprtedMain);
+	}
+	
+	//根据任务填报主表id返回任务的状态
+	@Override
+	public int getDataReoprtedMainStatus(DataReoprtedMain dataReoprtedMain) {
+		int status = dataReoprtedMain.getReportedStatus();
+		return status;
+	}
+
+	// 根据用户、期数、任务id获取
+	@Override
+	public DataReoprtedMain getReoprteMainByPersonPeriodTask(String personId,
+			String period, String taskId) {
+		return dataReoprtedMainDao.findReoprtedMainByPersonPeriodTask(personId,
+				Integer.parseInt(period), taskId);
+	}
+
+	@Override
+	public List<DataReoprtedMain> getReoprteMainByMultParam(String personId,
+			String executeType) {
+		return dataReoprtedMainDao.findByMultParam(personId,
+				Integer.parseInt(executeType));
+	}
+
+	@Override
+	public DataReoprtedMain saveDataReoprtedMain(DataReoprtedMain reoprtMian) {
+		return dataReoprtedMainDao.save(reoprtMian);
+	}
+	
+	@Override
+	public DataReoprtedMain findDataReoprtedMainById(String id) {
+		return dataReoprtedMainDao.findOne(id);
+	}
+	
+	public void save(DataReoprtedMain dataReoprtedMain) {
+		dataReoprtedMainDao.save(dataReoprtedMain);
+	}
+
+	@Override
+	public List<DataReoprtedMain> getReoprteMainByPersonDate(Person person,
+			String period) {
+		Format f = new DecimalFormat("000");
+		// String day=DateUtil.formatDate(date, "yyyyMMdd");//天
+		// int period=Integer.parseInt(day);//期数
+		String personId = person.getId();// 用户ID
+		List<DataReoprtedMain> reoprtedMain = dataReoprtedMainDao
+				.findReoprtedMainByPersonPeriod(personId,
+						Integer.parseInt(period));
+		return reoprtedMain;
+	}
+
+	@Override
+	public Page<DataReoprtedMain> getReoprteMain(
+			Map<String, SearchFilter> filters, Pageable pageable) {
+		Specification<DataReoprtedMain> spec = DynamicSpecifications
+				.bySearchFilter(filters.values(), DataReoprtedMain.class);
+		return dataReoprtedMainDao.findAll(spec, pageable);
+	}
+
+	@Override
+	public Page<DataReoprtedMain> getMyCurrentTask(
+			Map<String, String[]> params, Pageable pageable) {
+		// 获取用户ID：personId
+		
+		String personId = null;
+		if(params.get("personId") != null) {
+			personId = params.get("personId")[0];
+		} else {
+			Subject currentUser = SecurityUtils.getSubject();
+			User user = (User) currentUser.getSession().getAttribute(
+					Constants.SESSION_USER_KEY);
+			Person person = user.getPerson();
+			personId = person.getId();
+		}
+		
+		// 获取当前期数：currentPeriod ,天、周、月、季度、年
+		// 根据用户ID和期数 获取有效任务 ：dataReoprtedMainPage
+		params.put("personId", new String[] { personId });
+		params.put("period", PeriodUtil.getCurrentPeriodsStr());
+		
+		
+		return dataReoprtedMainDao.findAll(spec(params), pageable);
+	}
+
+	@Override
+	public Page<DataReoprtedMain> getTaskByJPA(Map<String, String[]> paramsMap,
+			Pageable pageable) {
+		return dataReoprtedMainDao.findAll(spec(paramsMap), pageable);
+	}
+
+	// 查询任务DAO层
+		private Specification<DataReoprtedMain> spec(
+				final Map<String, String[]> paramsMap) {
+			return new Specification<DataReoprtedMain>() {
+				@Override
+				public Predicate toPredicate(Root<DataReoprtedMain> root,
+						CriteriaQuery<?> cq, CriteriaBuilder criteriaBuilder) {
+					Predicate conditioin = null;
+					// 任务上报状态
+					if (paramsMap.containsKey("reportedStatus")) {
+						conditioin = criteriaBuilder.equal(
+								root.get(DataReoprtedMain_.reportedStatus),
+								paramsMap.get("reportedStatus")[0]);
+					} else {
+						conditioin = criteriaBuilder.isNotNull(root
+								.get(DataReoprtedMain_.reportedStatus));
+					}
+					if (paramsMap.containsKey("personId")) { // 根据采集人ID
+						Join<DataReoprtedMain, DataCollectPerson> personJoin = root
+								.join(DataReoprtedMain_.person);
+						Predicate con = criteriaBuilder.equal(
+								personJoin.get(DataCollectPerson_.id),
+								paramsMap.get("personId")[0]);
+						conditioin = criteriaBuilder.and(conditioin, con);
+					}
+					// 任务类型，天、周
+					if (paramsMap.containsKey("executeType")) {
+						Predicate con = criteriaBuilder.equal(
+								root.get(DataReoprtedMain_.executeType),
+								paramsMap.get("executeType")[0]);
+						conditioin = criteriaBuilder.and(conditioin, con);
+					}
+					if (paramsMap.containsKey("period")) {
+						Expression<Integer> exp = root
+								.get(DataReoprtedMain_.period);
+						Predicate con = criteriaBuilder.and(exp.in(Arrays
+								.asList(paramsMap.get("period"))));
+						conditioin = criteriaBuilder.and(conditioin, con);
+					}
+					if (paramsMap.containsKey("reportedStatus")) {// 上报状态
+						Expression<Integer> exp = root
+								.get(DataReoprtedMain_.reportedStatus);
+						Predicate con = criteriaBuilder.and(exp.in(Arrays
+								.asList(paramsMap.get("reportedStatus"))));
+						conditioin = criteriaBuilder.and(conditioin, con);
+					}
+					if (paramsMap.containsKey("taskName")) { // 任务名称
+						Predicate con = criteriaBuilder.equal(
+								root.get(DataReoprtedMain_.taskName),
+								paramsMap.get("taskName")[0]);
+						conditioin = criteriaBuilder.and(conditioin, con);
+					}
+					if (paramsMap.containsKey("lessCurrentDate")) { //
+						//SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+						Date date=new Date();
+						Predicate con = criteriaBuilder.lessThan(
+								root.get(DataReoprtedMain_.endDate),date);
+						conditioin = criteriaBuilder.and(conditioin, con);
+					}
+					return conditioin;
+				}
+			};
+		}
+
+	//临时设置是否可以编辑的属性
+	@Override
+	public Page<DataReoprtedMain> setDataReoprtedMainEditable(
+			List<DataReoprtedMain> content, Pageable pageable, int totalPages) {
+		List<DataReoprtedMain> list=new ArrayList<DataReoprtedMain>();
+		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date date=new Date();
+		try {
+			date = sdf.parse(sdf.format(date));
+		} catch (ParseException e1) {
+			e1.printStackTrace();
+		}
+		for (DataReoprtedMain d : content) {
+			DataReoprtedMain temp=new DataReoprtedMain();
+			BeanUtils.copyProperties(d, temp);
+			String cron=d.getTaskMain().getCron();
+			if(CronUtil.checkTime(date, cron)){
+				d.setEditable(1);
+				list.add(temp);
+			}
+		}
+		Page<DataReoprtedMain> result=new PageImpl<DataReoprtedMain>(list, pageable, list.size()/pageable.getPageSize());
+		return result;
+	}
+	
+	@Override
+	public Page<DataReoprtedMain> getMyUnReoprtedTask(
+			Map<String, String[]> params, Pageable pageable) {
+		// TODO Auto-generated method stub
+		// 获取用户ID：personId
+		Subject currentUser = SecurityUtils.getSubject();
+		User user = (User) currentUser.getSession().getAttribute(
+				Constants.SESSION_USER_KEY);
+		Person person = user.getPerson();
+		String personId = person.getId();
+		// 获取当前期数：currentPeriod ,天、周、月、季度、年
+		// 根据用户ID和期数 获取有效任务 ：dataReoprtedMainPage
+		params.put("personId", new String[] { personId });
+		params.put("reportedStatus", new String[] { "0", "3" });// 未上报或被驳回
+		params.put("lessCurrentDate",  new String[] {"less"});
+		dataReoprtedMainDao.findAll(spec(params), pageable);
+		return dataReoprtedMainDao.findAll(spec(params), pageable);
+	}
+	
+
+}

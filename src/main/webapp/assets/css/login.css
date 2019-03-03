@@ -1,0 +1,138 @@
+@CHARSET "UTF-8";
+
+body {
+	font-family: "Microsoft YaHei" !important;
+	padding-bottom: 0px;
+	background-color: #f5f5f5;
+}
+
+.hidden {
+  display:none;
+}
+
+
+.navbar{
+	margin:0 auto!important;
+	padding:0!important;
+	border:none!important;
+}
+
+.navbar-inverse .navbar-inner {
+   /*background-color: #024F7B;*/
+   background-color: #333;
+}
+
+.navbar .nav > li > a {
+    color: #DDD;
+}
+.navbar .nav .active > a, .navbar .nav .active > a:hover {
+    /*background-color: #09B2C8;*/
+     background-color: #3F4B4D;
+}
+
+.navbar-inner .brand{
+    color: #ffffff;
+}
+
+a.navbar-brand{
+	font-weight:bold!important;
+	color:#fff!important;
+	font-family: "Microsoft YaHei" !important;
+	font-weight: bold;
+	font-size:24px;
+}
+
+.login-wrap {
+	padding:0;
+	margin:0 auto;
+	width: 100%!important;
+}
+
+.loginpanel{
+	position:absolute;
+	top:35px;
+	right:0;
+	max-width: 500px;
+	padding: 5px 20px 5px 0;
+	z-index:999;
+}
+/* Carousel base class */
+.carousel {
+	margin-bottom: 20px;
+}
+
+
+.carousel-control {
+	margin-top:280px;
+	font-size: 60px;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, .4);
+	background-color: transparent;
+	border: none;
+	z-index: 10;
+}
+
+.carousel-control.leftright {
+  	right: 80px;
+  	left: auto;
+}
+
+.carousel .item {
+	height: 100%;
+}
+
+.carousel .content {
+	position: absolute;
+	top: 0;
+	left: 0;
+	min-width: 100%;
+	min-height:100%;
+	height: auto;
+}
+
+.carousel-caption {
+	background-color: transparent;
+	position: static;
+	max-width: 550px!important;
+	padding: 0 20px;
+	margin-top: 200px;
+}
+
+.carousel-caption h1, .carousel-caption .lead {
+	margin: 0;
+	line-height: 1.25;
+	color: #fff;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, .4);
+}
+
+.carousel-caption .btn {
+	margin-top: 10px;
+}
+
+.captchaImage{min-height:40px!important;min-width:100px!important;vertical-align:top;}
+
+.login-tile {
+	font-family: "Microsoft YaHei" !important;
+	margin-bottom: 10px;
+}
+
+.login-tile span {
+	font-size: 40px;
+	font-weight: bold !important;
+}
+
+#normal-pane,#ca-pane {
+	height: 380px;
+	padding-top: 20px;
+}
+
+.panel-title{font-weight:bold;}
+
+
+.footer {
+	margin:0 auto;
+	width:100%;
+	color: #999;
+	text-align: center!important;
+	padding: 5px 0;
+	border-top: 1px solid #e5e5e5;
+}

@@ -1,0 +1,119 @@
+package com.yunforge.base.service.impl;
+
+import static com.yunforge.base.dao.PersonSpecifications.searchOrgPersons;
+import static com.yunforge.base.dao.PersonSpecifications.searchPersons;
+
+import java.util.Arrays;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.yunforge.base.dao.PersonDao;
+import com.yunforge.base.model.Person;
+import com.yunforge.base.service.PersonManager;
+import com.yunforge.collect.model.DataCollectPerson;
+
+@Scope("prototype")
+@Service
+@Transactional(readOnly = true)
+public class PersonManagerImpl implements PersonManager {
+	final static Log log = LogFactory.getLog(PersonManagerImpl.class);
+
+	@Resource
+	private PersonDao personDao;
+
+	@Override
+	public Person findById(String id) {
+		Person person = this.personDao.findOne(id);
+		return person;
+	}
+
+	@Override
+	public Person findByPersName(String persName) {
+		Person person = this.personDao.findByPersName(persName);
+		return person;
+	}
+
+	@Override
+	public Person findByUserId(String userId) {
+		Person person = this.personDao.findByUserIdIs(userId);
+		return person;
+	}
+
+	@Override
+	public Person findByUsername(String username) {
+		Person person = this.personDao.findByUserUsernameIs(username);
+		return person;
+	}
+
+	@Override
+	public List<Person> findAll(String[] ids) {
+		List<String> idList = Arrays.asList(ids);
+		return personDao.findAll(idList);
+	}
+
+	@Override
+	public Page<Person> findAll(Pageable pageable) {
+		Page<Person> persons = this.personDao.findAll(pageable);
+		return persons;
+	}
+
+	@Override
+	@Transactional
+	public Person savePerson(Person person) {
+		return personDao.save(person);
+	}
+
+	@Override
+	@Transactional
+	public void removePerson(Person person) {
+		personDao.delete(person);
+	}
+
+	@Override
+	@Transactional
+	public void removePersons(List<Person> persons) {
+		personDao.delete(persons);
+	}
+
+	@Override
+	@Transactional
+	public void removePersons(String[] ids) {
+		List<Person> employeeList = findAll(ids);
+		personDao.deleteInBatch(employeeList);
+	}
+
+	@Override
+	public Page<Person> listPersons(String filters, Pageable pageable,String persName) {
+		return personDao.findAll(searchPersons(filters,persName), pageable);
+	}
+
+	@Override
+	public Page<Person> listOrgPersons(String orgId, String filters,
+			Pageable pageable) {
+		return personDao.findAll(searchOrgPersons(orgId, filters), pageable);
+	}
+	@Override
+	public void setUnIsCollect(String[] ids){
+//		List<Person> personList=findAll(ids);
+//		personDao.save(personList);
+		for (int i = 0; i < ids.length; i++) {
+			Person person = this.personDao.findOne(ids[i]);
+			person.setIsCollent(0);
+			personDao.save(person);
+		}
+	}
+	@Override
+	public Page<Person> listPersonByOrgAndIsCollect(String orgId,Integer isCollect,Pageable pageable){
+		return personDao.findByOrgAndCollect(orgId, isCollect,pageable);
+	}
+
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modeltable width="100%" high="100%" tableName="market_index_year">
+  <target  name="time" dataType="str" label="时间">time</target>
+  <target  name="price" dataType="num"  format="0.00" unit="元/千克" label="价格">price</target>
+  <target  name="sale" dataType="num"  format="0.00" unit="销量" label="吨">sale</target>
+<!--  <condition><![CDATA[ 
+    #{cdate | prepend to_char(time,'YYYY-MM')= | append  and }
+    market_code = '#{market}' and
+    crop_code in #{products}
+  ]]> </condition> -->
+</modeltable>

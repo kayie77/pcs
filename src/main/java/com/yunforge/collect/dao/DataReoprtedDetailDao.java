@@ -1,0 +1,40 @@
+package com.yunforge.collect.dao;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
+import com.yunforge.collect.model.DataReoprtedDetail;
+
+public interface DataReoprtedDetailDao extends JpaRepository<DataReoprtedDetail, String>,JpaSpecificationExecutor<DataReoprtedDetail>{
+
+	@Query(value=" select distinct odo.period " +
+				  " from oper_datareoprtedmain odo " +
+				  " where odo.taskmain = ?1 " +
+				  " order by odo.period desc  ",nativeQuery=true)
+	public List<String> findDatareoprtedmainByTaskMainId(String taskMainId);
+
+	@Query(value=" select distinct odo.period " +
+				  " from oper_datareoprtedmain odo " +
+				  " where odo.taskmain = ?1 " +
+				  " and odo.person = ?2 " +
+				  " order by odo.period desc  ",nativeQuery=true)
+	public List<String> findDatareoprtedmainByTaskMainId(String taskMainId,String personId);
+	
+	@Modifying
+	@Query(value="delete from DataReoprtedDetail where dataReoprtedMain.id=?1  and dataReoprtedMain.period>=?2")
+	void deleteByPeriodandReoprtedMain(String id, Integer next);
+
+	@Query(value="select d.* FROM Oper_DataReoprtedDetail d,oper_taskdetail t,oper_agrprocategory2 a "
+			+ "WHERE d.DATAREOPRTEDMAIN = ?1"
+			+ " and d.TASKDETAILID = t.ID "
+			+ " and t.AGRPROCATEGORY2 = a.ID "
+			+ " ORDER BY a.`NAME`",nativeQuery=true)
+	public List<DataReoprtedDetail> findDataReoprtedDetailByDataReoprtedMain_Id(String dmId);
+	
+	
+}
+

@@ -1,0 +1,58 @@
+package com.yunforge.base.service.impl;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.yunforge.base.dao.CommonDao;
+import com.yunforge.base.service.AnalysisManager;
+import com.yunforge.support.sql.NativeSearchFilter;
+import com.yunforge.support.sql.NativeSql;
+
+@Service
+public class AnalysisManagerImpl implements AnalysisManager {
+	@Autowired
+	private CommonDao commonDao;
+	
+	@Override
+	public List<Object[]> getCities() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Object[]> getCategories() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Object[]> getProducts() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Object[]> getMarkets(String regionCode, Map<String, Object> paramsMap) {
+		Map<String, NativeSearchFilter> filters = NativeSearchFilter.parse(paramsMap);
+		filters.put("region", new NativeSearchFilter("region_code", NativeSearchFilter.Operator.EQ, regionCode));
+		Collection<NativeSearchFilter> filtersColletion =  filters.values();
+		String querySql = "select market, market_code from a_dic_market" 
+				+ " where " + NativeSql.filter(filtersColletion);
+
+		Iterator<NativeSearchFilter> iterator = filtersColletion.iterator();
+		int index = 0;
+		Object[] params = new Object[filtersColletion.size()];
+		while (iterator.hasNext()) {
+			NativeSearchFilter filter = iterator.next();
+			params[index++] = filter.value;
+		}
+		return commonDao.executeNativeQuery(querySql, params);
+	}
+
+
+}

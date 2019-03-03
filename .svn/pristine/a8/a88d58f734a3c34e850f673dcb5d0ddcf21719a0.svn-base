@@ -1,0 +1,139 @@
+package com.yunforge.collect.web.controller;
+
+import java.util.Map;
+import java.util.List;
+
+import javax.servlet.ServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yunforge.collect.dto.MessageObject;
+import com.yunforge.collect.jackson.mixin.TaskDetailMixin;
+import com.yunforge.collect.model.GropInfo;
+import com.yunforge.collect.model.AgrProCategory2;
+import com.yunforge.collect.model.PersonGroup;
+import com.yunforge.collect.model.TaskDetail;
+import com.yunforge.collect.service.AgrProCategoryManager;
+import com.yunforge.collect.service.PersonGroupManager;
+import com.yunforge.collect.service.TaskDetailManager;
+import com.yunforge.srpingside.Servlets;
+
+@Controller
+@RequestMapping("/collect")
+public class TaskDetailController {
+	
+	@Autowired 
+	private TaskDetailManager taskDetailManager;
+	
+	private static final ObjectMapper objectMapper = new ObjectMapper();
+
+	
+	/**************** view controller*******************/	
+	
+	//管理界面
+	@RequestMapping(value="/taskDetail/manager",params="tmId", method=RequestMethod.GET)
+	public String taskDetailView(@RequestParam String tmId, ModelMap model) {
+		model.addAttribute("tmId", tmId);
+		return "collect/taskDetail/manager";
+	}
+	
+	//新增表单
+	@RequestMapping(value="/taskDetail/view/new", params="tmId", method=RequestMethod.GET)
+	public String newTaskDetailView(@RequestParam String tmId, ModelMap model) {
+		TaskDetail taskDetail = new TaskDetail();
+
+		model.addAttribute("tmId", tmId);
+		model.addAttribute("taskDetail", taskDetail);
+
+		return "collect/taskDetail/form";
+	}
+	
+	//编辑表单
+	@RequestMapping(value="/taskDetail/view/edit", params="id", method=RequestMethod.GET)
+	public String editTaskDetailView(@RequestParam String id, ModelMap model) {
+		TaskDetail taskDetail = taskDetailManager.getTaskDetail(id);
+		AgrProCategory2 apc = taskDetail.getAgrProCategory2();
+		
+		model.addAttribute("tmId", taskDetail.getTaskMain().getId());
+		model.addAttribute("taskDetail", taskDetail);
+		model.addAttribute("apcId", apc.getId());
+		model.addAttribute("apcName", apc.getName());
+
+		return "collect/taskDetail/form";
+	}
+
+	//查看视图
+	@RequestMapping(value="/taskDetail/view/detail", params="id", method=RequestMethod.GET)
+	public String viewTaskDetail(@RequestParam String id, ModelMap model) {
+		TaskDetail taskDetail = taskDetailManager.getTaskDetail(id);
+		model.addAttribute("tmName", taskDetail.getTaskMain().getName());
+		model.addAttribute("taskDetail", taskDetail);
+		return "collect/taskDetail/detail";
+	}
+	
+	/**************** data controller*******************/
+	
+	//获取任务细表信息
+	@RequestMapping(value="/taskDetail", method=RequestMethod.GET, produces="application/json; charset=utf-8")
+	public @ResponseBody String getTaskDetailByTm(@RequestParam("tmId") String tmId,ServletRequest request, Pageable pageable){
+		Map<String, Object> searchParams = Servlets.getParametersStartingWith(request, "search_");
+		objectMapper.addMixInAnnotations(TaskDetail.class, TaskDetailMixin.BasicInfo.class);
+		
+		Page<TaskDetail> page =  taskDetailManager.getTaskDetail(tmId, searchParams, pageable);
+		try {
+			return objectMapper.writeValueAsString(page);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	//新增
+	@RequestMapping(value="/taskDetail", method=RequestMethod.POST, produces="application/json; charset=utf-8")
+	@ResponseBody
+	public String saveTaskDetail(@RequestBody TaskDetail taskDetail) throws JsonProcessingException {
+		objectMapper.addMixInAnnotations(TaskDetail.class, TaskDetailMixin.BasicInfo.class);
+		MessageObject messageObject = new MessageObject();
+		TaskDetail saveTaskDetail;
+		try {	
+			saveTaskDetail = taskDetailManager.newTaskDetail(taskDetail);
+			messageObject.setData(saveTaskDetail);
+			messageObject.setMessage("保存成功!");
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			messageObject.setMessage("保存失败!"+e.getMessage());
+		}
+		return objectMapper.writeValueAsString(messageObject);
+	}
+	
+	//删除
+	@RequestMapping(value="/taskDetail", params="del", method=RequestMethod.POST)
+	@ResponseBody
+	public MessageObject delTaskDetail(@RequestParam("id") String[] id) {
+		MessageObject messageObject = new MessageObject();
+		try {
+			taskDetailManager.delTaskDetails(id);
+			messageObject.setMessage("删除成功!");
+			messageObject.setStatus(true);
+		} catch (Exception e) {
+			// TODO: handle exception
+			messageObject.setMessage("删除失败!" + e.getMessage());
+			messageObject.setStatus(false);
+		}
+		return messageObject;
+	}
+
+}

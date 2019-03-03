@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <modeltable id="testTable" width="800px" height="400px" tableName="B_ANALYSIS" dataSource="oracle">
+      <view><![CDATA[
+        select   
+          rownum,
+          r.*
+        from(
+          select
+            b.crop_name,
+            avg(b.price) over(partition by extract(day from b.time)) as avgPrice,
+            max(b.price) over(partition by extract(day from b.time)) as maxPrice,
+            p.MARKET as maxMarket,
+            p.PRICE as maxMarketPrice,
+            p.MARKET as minMarket,
+            p.price as minMarketPrice,
+            b.unit
+          from B_ANALYSIS b, PRODUCT_MAX_PRICE_DAY p, PRODUCT_MIN_PRICE_DAY p1
+          where 
+            #{ctype | prepend b.crop_type= | append  and}
+            #{cname | prepend b.crop_name= | append  and}
+            b.region_name = '#{region}' and
+            b.crop_name = p.crop_name and 
+            b.crop_name = p1.crop_name and
+            extract(day from b.time) = p.period and 
+            extract(day from b.time) = p1.period and
+            to_char(b.time, 'YYYY-MM') = to_char(p.time, 'YYYY-MM') and 
+            to_char(b.time, 'YYYY-MM') = to_char(p1.time, 'YYYY-MM')
+        ) r
+      ]]>
+      </view>
+      <target name="rownum" dataType="num" sort="true" label="序号">rownum</target>
+      <target name="cropName" dataType="str" sort="true" label="名称">crop_name</target>
+      <target name="avgPrice" dataType="num" label="今日均价">avgPrice</target>
+      <target name="maxPrice" dataType="num" label="今日最高价">maxPrice</target>
+      <target name="maxMarket" dataType="str" label="最高交易价市场">maxMarket</target>
+      <target name="maxMarketPrice" dataType="num" label="最高交易价">maxMarketPrice</target>
+      <target name="minMarket" dataType="str" label="最低交易价市场">minMarket</target>
+      <target name="minMarketPrice" dataType="num" label="最低交易价">minMarketPrice</target>
+      <target name="unit" dataType="str" label="计量单位">unit</target>
+  </modeltable>

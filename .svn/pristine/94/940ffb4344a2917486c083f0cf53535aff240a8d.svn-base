@@ -1,0 +1,68 @@
+package com.yunforge.collect.model;
+
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+
+@Entity
+@Table(name = "oper_DataCollectCategory")
+public class DataCollectCategory {
+
+	@Id
+	@GeneratedValue(generator = "system-uuid")
+	@Column(name = "ID", nullable = false, updatable = false, length = 100)
+	private String id;
+
+	@Column(name = "NAME", nullable = false, length = 100)
+	private String name; // 分类名称
+
+	@Column(name = "CODE", length = 100)
+	private String code; // 分类编码
+
+	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "dataCollectCategory", fetch = FetchType.LAZY)
+	private List<DataCollectPoint> dataCollectPoints;
+
+/*	@OneToMany(cascade = CascadeType.REMOVE, mappedBy = "dataCollectCategory", fetch = FetchType.LAZY)
+	private List<TaskMain> taskMains;*/
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public List<DataCollectPoint> getDataCollectPoints() {
+		return dataCollectPoints;
+	}
+
+	public void setDataCollectPoints(List<DataCollectPoint> dataCollectPoints) {
+		this.dataCollectPoints = dataCollectPoints;
+	}
+
+}

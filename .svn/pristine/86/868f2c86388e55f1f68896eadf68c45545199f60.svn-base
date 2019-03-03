@@ -1,0 +1,618 @@
+<%@ page pageEncoding="UTF-8" contentType="text/html;charset=UTF-8"%>
+<%@ include file="/WEB-INF/jsp/common/taglibs.jsp"%>
+<link rel="stylesheet" href="${ctx}/assets/jquery/ui/css/jquery-ui.custom.min.css" />
+<link rel="stylesheet" href="${ctx}/assets/jquery/plugins/gritter/css/jquery.gritter.css" />
+<link rel="stylesheet" href="${ctx}/assets/jquery/plugins/select2/css/select2.min.css" />
+<link rel="stylesheet" href="${ctx}/assets/bootstrap/plugins/date-time/css/datepicker.min.css" />
+<link rel="stylesheet" href="${ctx}/assets/jquery/plugins/chosen/css/chosen.min.css" />
+<link rel="stylesheet" href="${ctx}/assets/bootstrap/plugins/editable/css/bootstrap-editable.min.css" />
+<div class="row">
+  <div id="user-profile" class="user-profile">
+	<div class="col-xs-12">
+		<div class="tabbable">
+	   		<ul class="nav nav-tabs padding-18">
+		   		<li class="active">
+					<a data-toggle="tab" href="#accountTab">
+						<i class="green ace-icon fa fa-pencil bigger-120"></i>
+						帐户信息
+			    	</a>
+		   		</li>
+		   		<li>
+					<a data-toggle="tab" href="#personelTab">
+						<i class="green  ace-icon fa fa-user bigger-120"></i>
+						个人信息
+			    	</a>
+		   		</li>
+		   		<li>
+					<a data-toggle="tab" href="#passwordTab">
+						<i class="green ace-icon fa fa-key bigger-120"></i>
+						修改密码
+					</a>
+		   		</li>
+	   		</ul>
+	   		<div class="tab-content no-border padding-24 ">
+	         	<div id="accountTab" class="tab-pane in active">	   
+                	<div class="row">
+                	    <div class="col-xs-12 col-sm-3 center">
+									<span class="profile-picture">
+										<c:choose>
+											<c:when test="${profile.avatar == null}">
+												<img id="avatar" class="editable img-responsive"  alt="${profile.fullName}"  src="${ctx}/assets/avatars/avatar156x156.jpg" />
+											</c:when>
+											<c:otherwise>
+												<img id="avatar" class="editable img-responsive"  alt="${profile.fullName}"  src="${ctx}/office/file/download?filename=${profile.avatar}&type=avatar" />
+											</c:otherwise>
+										</c:choose>
+									</span>
+
+									<div class="space space-4"></div>
+									<a href="#" class="btn btn-sm btn-block btn-primary" style="display:none">
+										<i class="ace-icon fa fa-envelope-o bigger-110"></i>
+										<span class="bigger-110">发送信息</span>
+									</a>
+						</div><!-- /.col -->
+						
+						<div class="col-xs-12 col-sm-9">
+							<h4 class="blue">
+								<span class="middle">${profile.fullName}</span>
+								<span class="label label-purple arrowed-in-right">
+									<i class="ace-icon fa fa-circle smaller-80 align-middle"></i>
+									在线
+								</span>
+							</h4>
+							<div class="profile-user-info">
+								<div class="profile-info-row">
+									<div class="profile-info-name"> <spring:message code="label.user.userName" />：  </div>
+									<div class="profile-info-value">
+										<span id="username">${profile.username}</span>
+									</div>
+								</div>
+					 			<div class="profile-info-row">
+									<div class="profile-info-name"> <spring:message code="label.user.fullName" />： </div>
+									<div class="profile-info-value">
+										<span id="fullName">${profile.fullName}</span>
+									</div>
+					 			</div>
+					 			<div class="profile-info-row">
+									<div class="profile-info-name"> <spring:message code="label.user.lastLoginTime" />： </div>
+									<div class="profile-info-value">
+										<span id="lastLoginTime"><fmt:formatDate value="${profile.lastLoginTime}" pattern="yyyy-MM-dd HH:mm:ss"/></span>
+									</div>
+					 			</div>
+					 			<div class="profile-info-row">
+									<div class="profile-info-name"> <spring:message code="label.user.lastLoginIp" />： </div>
+									<div class="profile-info-value">
+										<span id="lastLoginIp">${profile.lastLoginIp}</span>
+									</div>
+					 			</div>
+					 			<div class="profile-info-row">
+									<div class="profile-info-name"> <spring:message code="label.user.qq" />： </div>
+									<div class="profile-info-value">
+							 			<span class="editable" id="qq">${profile.qq}</span>
+									</div>
+					 			</div>
+					 			<div class="profile-info-row">
+									<div class="profile-info-name"> <spring:message code="label.user.caSn" />： </div>
+									<div class="profile-info-value">
+							 			<span class="editable" id="caSn">${profile.caSn}</span>
+									</div>
+					 			</div>
+							</div>
+						</div>
+				 	</div><!-- /.row -->				 
+	         	</div>
+	         	<div id="personelTab" class="tab-pane">
+	           		<form:form cssClass="form-horizontal" id="personForm" modelAttribute="personInfo" action="${ctx}/profile/updatePersonInfo" method="POST">
+	           			<div class="space-10"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="persName">用户姓名:</label>
+							<div class="col-sm-9">
+								<form:input cssClass="input-large" id="persName" path="persName"  placeholder="用户姓名..." />
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="gender">性别:</label>
+							<div class="col-sm-9">
+								 <label class="inline">
+									<form:radiobutton cssClass="ace" path="gender" id="gender"  value="1" />
+									<span class="lbl middle">男</span>
+								</label>
+								&nbsp; &nbsp; &nbsp;
+								<label class="inline">
+									<form:radiobutton cssClass="ace" path="gender" id="gender" value="2"/>
+									<span class="lbl middle">女</span>
+								</label>
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="birthday">出生日期:</label>
+							<div class="col-sm-9">
+							    <div class="input-medium">
+									<div class="input-group">
+										<form:input cssClass="input-large" path="birthday" id="birthday" data-date-format="yyyy-mm-dd" placeholder="yyyy-mm-dd" />
+										<span class="input-group-addon">
+										    <i class="ace-icon fa fa-calendar"></i>
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="birthPlace">籍贯:</label>
+							<div class="col-sm-9">
+								<form:input cssClass="input-large"  path="birthPlace" id="birthPlace" placeholder="籍贯..." />
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="idCertNum">身份证号:</label>
+							<div class="col-sm-9">
+								<span class="input-icon input-icon-right">
+									<form:input cssClass="input-large input-mask-idCertNum"  id="idCertNum" path="idCertNum" placeholder="身份证号..." />
+								</span>
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="empNum">员工编号:</label>
+							<div class="col-sm-9">
+								<span class="input-icon input-icon-right">
+									<form:input cssClass="input-large" id="empNum" path="empNum"  placeholder="员工编号..." />
+								</span>
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="email">电子邮件:</label>
+							<div class="col-sm-9">
+								<span class="input-icon input-icon-right">
+									<form:input cssClass="input-large"  path="email" id="email" placeholder="电子邮件..." />
+									<i class="ace-icon fa fa-envelope"></i>
+								</span>
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="mobile">手机号码:</label>
+							<div class="col-sm-9">
+								<span class="input-icon input-icon-right">
+									<form:input cssClass="input-large input-mask-mobile" id="mobile" path="mobile" placeholder="手机号码..." />
+									<i class="ace-icon fa fa-mobile bigger-180"></i>
+								</span>
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="telNum">电话号码:</label>
+							<div class="col-sm-9">
+								<span class="input-icon input-icon-right">
+									<form:input cssClass="input-large input-mask-phone" id="telNum" path="telNum"  placeholder="电话号码..." />
+									<i class="ace-icon fa fa-phone fa-flip-horizontal"></i>
+								</span>
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="faxNum">传真号码:</label>
+							<div class="col-sm-9">
+								<span class="input-icon input-icon-right">
+									<form:input cssClass="input-large input-mask-phone" id="faxNum" path="faxNum"  placeholder="传真号码..." />
+									<i class="ace-icon fa fa-fax fa-flip-horizontal"></i>
+								</span>
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="zip">邮政编码:</label>
+							<div class="col-sm-9">
+								<span class="input-icon input-icon-right">
+									<form:input cssClass="input-large input-mask-zip" id="zip" path="zip"  placeholder="邮政编码..." />
+								</span>
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="address">地址:</label>
+							<div class="col-sm-9">
+								<form:textarea cssClass="input-xlarge" path="address" id="address" />
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-3 control-label no-padding-right" for="persDesc">描述:</label>
+							<div class="col-sm-9">
+								<form:textarea cssClass="input-xlarge" path="persDesc" id="persDesc" />
+							</div>
+						</div>
+						<div class="clearfix form-actions">
+							<div class="col-md-offset-3 col-md-9">
+								<button class="btn btn-sm btn-info" type="submit">
+									<i class="ace-icon fa fa-check"></i>
+									保存
+								</button>
+								&nbsp; &nbsp;
+								<button class="btn btn-sm" type="reset">
+									<i class="ace-icon fa fa-undo"></i>
+									重置
+								</button>
+							</div>
+					    </div>
+					</form:form>  
+	        	</div>
+	        	<div id="passwordTab" class="tab-pane">
+	           		<form class="form-horizontal" data-async id="passwordForm" role="form" action="${ctx}/profile/updatePassword" method="POST">
+	           			<div class="space-10"></div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label no-padding-right" for="password">输入密码：</label>
+							<div class="col-sm-10">
+							   <span class="input-icon input-icon-right">
+							   		<input type="password" id="password" name="password"  placeholder="新密码" required autofocus>
+							    	<i class="ace-icon fa fa-lock"></i>
+							   </span>
+							</div>
+						</div>
+						<div class="space-4"></div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label no-padding-right" for="confirmPassword">确认密码：</label>
+							<div class="col-sm-10">
+							   <span class="input-icon input-icon-right">
+									<input type="password" id="confirmPassword" name="confirmPassword"  placeholder="确认密码" required> 
+							        <i class="ace-icon fa fa-lock"></i>
+							   </span>
+							</div>
+						</div>
+						<div class="clearfix form-actions">
+							<div class="col-md-offset-3 col-md-9">
+								<button class="btn btn-sm btn-info" type="submit">
+									<i class="ace-icon fa fa-check"></i>
+									保存
+								</button>
+								&nbsp; &nbsp;
+								<button class="btn btn-sm" type="reset">
+									<i class="ace-icon fa fa-undo"></i>
+									重置
+								</button>
+							</div>
+					    </div>
+					</form>
+	        	</div>
+        	</div>
+        </div>
+     </div>
+  </div>
+</div>
+
+<!-- page specific plugin scripts -->
+
+<!--[if lte IE 8]>
+  <script src="${ctx}/assets/js/excanvas.min.js"></script>
+<![endif]-->
+
+<script type="text/javascript">
+	var scripts = [null,"${ctx}/assets/jquery/ui/jquery-ui.custom.min.js","${ctx}/assets/jquery/plugins/jquery-form/jquery-form.min.js","${ctx}/assets/jquery/plugins/validation/jquery.validate.min.js","${ctx}/assets/jquery/plugins/validation/localization/messages_zh.min.js","${ctx}/assets/jquery/ui/jquery.ui.touch-punch.min.js","${ctx}/assets/jquery/plugins/chosen/chosen.jquery.min.js","${ctx}/assets/jquery/plugins/gritter/jquery.gritter.min.js","${ctx}/assets/bootstrap/plugins/bootbox/bootbox.min.js","${ctx}/assets/bootstrap/plugins/date-time/bootstrap-datepicker.min.js","${ctx}/assets/bootstrap/plugins/date-time/locales/bootstrap-datepicker.zh-CN.js","${ctx}/assets/jquery/plugins/hotkeys/jquery.hotkeys.min.js","${ctx}/assets/bootstrap/plugins/wysiwyg/bootstrap-wysiwyg.min.js","${ctx}/assets/jquery/plugins/select2/select2.min.js","${ctx}/assets/jquery/plugins/fuelux/fuelux.spinner.min.js","${ctx}/assets/bootstrap/plugins/editable/bootstrap-editable.min.js","${ctx}/assets/js/ace-editable.min.js","${ctx}/assets/jquery/plugins/maskedinput/jquery.maskedinput.min.js", null];
+	$('.page-content-area').ace_ajax('loadScripts', scripts, function() {
+	     //inline scripts related to this page
+	    jQuery(function($) {
+			//editables on first profile page
+			$.fn.editable.defaults.mode = 'inline';
+			$.fn.editableform.loading = "<div class='editableform-loading'><i class='ace-icon fa fa-spinner fa-spin fa-2x light-blue'></i></div>";
+	    	$.fn.editableform.buttons = '<button type="submit" class="btn btn-info editable-submit"><i class="ace-icon fa fa-check"></i></button>'+
+	                                '<button type="button" class="btn editable-cancel"><i class="ace-icon fa fa-times"></i></button>';    
+		
+			//editables 
+			//text editable
+	    	$('#caSn').editable({
+				type: 'text',
+				name: 'caSn',
+				pk:'${profile.id}',
+				url:'${ctx}/profile/updateProfile'
+	    	});
+	    
+	    	$('#qq').editable({
+				type: 'text',
+				name: 'qq',
+				pk:'${profile.id}',
+				url:'${ctx}/profile/updateProfile'
+	    	});
+	    			
+			// *** editable avatar *** //
+			try {//ie8 throws some harmless exceptions, so let's catch'em
+				//first let's add a fake appendChild method for Image element for browsers that have a problem with this
+				//because editable plugin calls appendChild, and it causes errors on IE at unpredicted points
+				try {
+					document.createElement('IMG').appendChild(document.createElement('B'));
+				} catch(e) {
+					Image.prototype.appendChild = function(el){}
+				}
+	
+				var last_gritter
+				$('#avatar').editable({
+					type: 'image',
+					name: 'avatar',
+					value: null,
+					image: {
+						//specify ace file input plugin's options here
+						btn_choose: '修改头像',
+						droppable: true,
+						maxSize: 110000,//~100Kb
+	
+						//and a few extra ones here
+						name: 'avatar',//put the field name here as well, will be used inside the custom plugin
+						on_error : function(error_type) {//on_error function will be called when the selected file has a problem
+							if(last_gritter) $.gritter.remove(last_gritter);
+							if(error_type == 1) {//file format error
+								last_gritter = $.gritter.add({
+									title: '文件太大!',
+									text: '请选择jpg|gif|png格式的图片文件!',
+									class_name: 'gritter-error gritter-center'
+								});
+							} else if(error_type == 2) {//file size rror
+								last_gritter = $.gritter.add({
+									title: '文件太大!',
+									text: '图片大小不能超过 100Kb!',
+									class_name: 'gritter-error gritter-center'
+								});
+							}else{//other error
+							
+							}
+						},
+						on_success : function() {
+							$.gritter.removeAll();
+						}
+					},
+			    	url: function(params) {
+						// ***UPDATE AVATAR HERE*** //
+						//for a working upload example you can replace the contents of this function with 
+						//examples/profile-avatar-update.js
+						
+						var submit_url = '${ctx}/profile/saveImage';
+						//var deferred = null;
+						var avatar = '#avatar';
+						var deferred = new $.Deferred
+	
+						var value = $('#avatar').next().find('input[type=hidden]:eq(0)').val();
+						if(!value || value.length == 0) {
+							deferred.resolve();
+							return deferred.promise();
+						}
+						
+						var $form = $(avatar).next().find('.editableform:eq(0)')
+						var file_input = $form.find('input[type=file]:eq(0)');
+						var pk = $(avatar).attr('data-pk');//primary key to be sent to server
+						var ie_timeout = null
+	
+	
+						//dummy upload
+						setTimeout(function(){
+							if("FileReader" in window) {
+								//for browsers that have a thumbnail of selected image
+								//var thumb = $('#avatar').next().find('img').data('thumb');
+								//if(thumb) $('#avatar').get(0).src = thumb;
+								
+								
+								var formData_object = new FormData();//create empty FormData object
+								
+								//serialize our form (which excludes file inputs)
+								$.each($form.serializeArray(), function(i, item) {
+									//add them one by one to our FormData 
+									formData_object.append(item.name, item.value);							
+								});
+								//and then add files
+								$form.find('input[type=file]').each(function(){
+									var field_name = $(this).attr('name');
+									var files = $(this).data('ace_input_files');
+									if(files && files.length > 0) {
+										formData_object.append(field_name, files[0]);
+									}
+								});
+								//append primary key to our formData
+								formData_object.append('pk', pk);
+								//deferred = 
+								$.ajax({
+												url: submit_url,
+											   type: 'POST',
+										processData: false,//important
+										contentType: false,//important
+										   dataType: 'json',//server response type
+											   data: formData_object,
+											   success: function(data){
+												   if(data.success) {
+													   //bootbox.alert('修改成功！');
+													   
+													   var thumb = $('#avatar').next().find('img').data('thumb');
+													   //if(thumb) 
+														$('#avatar').get(0).src = '${ctx}/office/file/download?filename='+data.file+'&type=avatar&date'+new Date().getTime();
+												   }
+											   }
+								})
+								
+							}
+						
+							deferred.resolve({'status':'OK'});
+	
+							if(last_gritter) $.gritter.remove(last_gritter);
+							last_gritter = $.gritter.add({
+								title: '提示',
+								text: '修改成功！',
+								class_name: 'gritter-info gritter-center'
+							});
+						
+					 	} , parseInt(Math.random() * 800 + 800))
+	
+						return deferred.promise();
+					
+						// ***END OF UPDATE AVATAR HERE*** //
+					},
+					success: function(response, newValue) {
+					}
+				});
+			}catch(e) {}
+		
+			
+			//datepicker plugin
+			$('#birthday').datepicker({
+				autoclose: true,
+				todayHighlight: true,
+				language: 'zh-CN'
+			})
+			//show datepicker when clicking on the icon
+			.next().on(ace.click_event, function(){
+				$(this).prev().focus();
+			});
+			
+			$('.input-mask-phone').mask('(9999) 999-9999');
+			
+			$('.input-mask-mobile').mask('99999999999');
+			
+			$('.input-mask-zip').mask('999999');
+			
+			$('.input-mask-idCertNum').mask('999999999999999999');
+			
+			$("#passwordForm").validate({	
+				rules : {
+					password : {
+						required : true,
+						minlength : 3,
+						maxlength : 20
+					},
+					confirmPassword : {
+						required : true,
+						minlength : 3,
+						maxlength : 20,
+						equalTo : '#password'
+					}
+				},
+	
+				// Messages for form validation
+				messages : {
+					confirmPassword : {
+						equalTo : '两次输入密码不相等 '
+					}
+				},
+				//errorElement: "span",
+				errorPlacement: function(error, element) {
+					//console.log(error);
+				    error.insertAfter(element.parent());
+				},
+				highlight: function(element) {
+				    //$(element).closest('.form-group').removeClass('success').addClass('error');
+				},
+				submitHandler: function(form) {
+					$(form).ajaxSubmit({
+						//target: "#result",
+						type:"POST",
+						dataType:"json",
+						success:function(data,status) {
+				            if(data.success===true) {
+				            	bootbox.dialog({
+		 							message: data.message,
+		 							buttons: 			
+		 							{
+		 								"success" :
+		 								 {
+		 									"label" : "<i class='ace-icon fa fa-check'></i>确定",
+		 									"className" : "btn-sm btn-success",
+		 									"callback": function() {
+		 										$('#passwordForm').get(0).reset();	
+		 									}
+		 								}
+		 							}
+		 						});
+				            } else {
+				            	 bootbox.dialog({
+										message: data.message,
+										buttons: 			
+										{
+											"danger" :
+											 {
+												"label" : "<i class='ace-icon fa fa-exclamation-triangle'></i>确定",
+												"className" : "btn-sm btn-success",
+												"callback": function() {
+													$('#passwordForm').get(0).reset();	
+												}
+											}
+										}
+								});
+				            }
+				        }  
+					});
+				}
+			});
+			
+			
+			$("#personForm").validate({	
+				rules : {
+					persName : {
+						required : true,
+						minlength : 3,
+						maxlength : 20
+					},
+					email : {
+						required : true,
+						email: true
+					},
+					mobile : {
+						required : true,
+						minlength : 11,
+						maxlength : 11
+					},
+					telNum : {
+						required : true,
+						minlength : 7,
+						maxlength : 20
+					}
+				},
+				//errorElement: "span",
+				errorPlacement: function(error, element) {
+					console.log(error);
+				    error.insertAfter(element.parent());
+				},
+				highlight: function(element) {
+				    //$(element).closest('.form-group').removeClass('success').addClass('error');
+				},
+				submitHandler: function (form) {
+					$(form).ajaxSubmit({
+						//target: "#result",
+						type:"POST",
+						dataType:"json",
+						success:function(data,status) {
+				            console.log(data)
+				            if(data.success===true) {
+				            	bootbox.dialog({
+		 							message: data.message,
+		 							buttons: 			
+		 							{
+		 								"success" :
+		 								 {
+		 									"label" : "<i class='ace-icon fa fa-check'></i>确定",
+		 									"className" : "btn-sm btn-success",
+											"callback": function() {	
+											}
+		 								}
+		 							}
+		 						});
+				            } else {
+				            	 bootbox.dialog({
+										message: data.message,
+										buttons: 			
+										{
+											"danger" :
+											 {
+												"label" : "<i class='ace-icon fa fa-exclamation-triangle'></i>确定",
+												"className" : "btn-sm btn-success",
+												"callback": function() {	
+												}
+											}
+										}
+								});
+				            }
+				        }  
+					});
+				},
+			});
+		});	
+	});
+</script>

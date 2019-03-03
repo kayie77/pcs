@@ -1,0 +1,190 @@
+package com.yunforge.collect.web.controller;
+
+import java.text.DecimalFormat;
+import java.text.Format;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yunforge.base.model.Person;
+import com.yunforge.base.model.User;
+import com.yunforge.collect.dao.TaskMainDao;
+import com.yunforge.collect.dto.MessageObject;
+import com.yunforge.collect.jackson.mixin.DataReoprtedMainMixin;
+import com.yunforge.collect.jackson.mixin.TaskMainMixin;
+import com.yunforge.collect.model.DataCollectPerson;
+import com.yunforge.collect.model.DataCollectPoint;
+import com.yunforge.collect.model.DataReoprtedMain;
+import com.yunforge.collect.model.TaskMain;
+import com.yunforge.collect.service.DataCollectPersonManager;
+import com.yunforge.collect.service.DataCollectPointManager;
+import com.yunforge.collect.service.DataReoprtedDetailManager;
+import com.yunforge.collect.service.DataReoprtedMainManager;
+import com.yunforge.collect.service.TaskMainManager;
+import com.yunforge.collect.util.PeriodUtil;
+import com.yunforge.common.Constants;
+import com.yunforge.common.util.DateUtil;
+import com.yunforge.common.util.WebUtils;
+import com.yunforge.core.annotation.MethodRemark;
+import com.yunforge.srpingside.Servlets;
+
+@Controller
+@RequestMapping("/collect")
+public class DataReoprtedMainController {
+
+	private static final ObjectMapper objectMapper = new ObjectMapper();
+	@Autowired
+	private TaskMainDao taskMainDao;
+	@Autowired
+	private TaskMainManager taskMainManager;
+
+	@Autowired
+	private DataReoprtedMainManager dataReoprtedMainManager;
+	@Autowired
+	private DataCollectPointManager dataCollectPointManager;
+
+	@Autowired
+	private DataCollectPersonManager dcpManager;
+	
+	@Autowired 
+	private DataReoprtedDetailManager dataReoprtedDetailManager;
+
+	/**************** view controller *******************/
+
+	// 管理界面
+	@RequestMapping(value = "/dataReoprtedMain/manager", method = RequestMethod.GET)
+	public String DataReoprtedMainView() {
+		return "collect/dataReoprtedMain/manager";
+	}
+
+	// 任务领取情况界面
+
+	@RequestMapping(value = "/dataReoprtedMain/receiveView", method = RequestMethod.GET)
+	public String DataReoprtedMainReceiveView() {
+		return "collect/dataReoprtedMain/receiveView";
+	}
+
+	// 任务领取情况（暂时废弃）
+	@RequestMapping(value = "/dataReoprtedMain/new", params = "taskMainId", method = RequestMethod.GET)
+	@ResponseBody
+	public MessageObject newDataReoprtedMainView(
+			@RequestParam String taskMainId, ModelMap model) {
+		DataReoprtedMain defaultDataReoprtedMain = new DataReoprtedMain();
+		MessageObject messageObject = new MessageObject();
+		Date date = new Date();
+		SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
+		String period = f.format(date);
+		System.out.println(f.format(date));
+		Subject currentUser = SecurityUtils.getSubject();
+		User user = (User) currentUser.getSession().getAttribute(
+				Constants.SESSION_USER_KEY);
+		String personId = user.getPerson().getId();
+		DataCollectPerson person = dcpManager.getDataCollectPerson(personId);
+		TaskMain taskMain = taskMainManager.getTaskMain(taskMainId);
+		DataReoprtedMain result = dataReoprtedMainManager.getReoprteMainByPersonPeriodTask(personId, period, taskMainId);
+		// DataReoprtedMain result =
+		// dataReoprtedMainManager.newDataReoprtedMain(defaultDataReoprtedMain,taskMain);
+		if (result != null) {
+			messageObject.setMessage("成功领取任务!");
+			messageObject.setStatus(true);
+		} else {
+			DataReoprtedMain reoprtMian = new DataReoprtedMain();
+			reoprtMian.setPeriod(Integer.parseInt(period));
+			reoprtMian.setTaskMain(taskMain);
+			reoprtMian.setPerson(person);
+			reoprtMian.setReceiveStatus(1);
+			reoprtMian.setReportedStatus(0);
+			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
+			reoprtMian.setReceiveTime(df.format(new Date()));// new
+																// Date()为获取当前系统时间
+			dataReoprtedMainManager.saveDataReoprtedMain(reoprtMian);
+			messageObject.setMessage("您已领取过任务!");
+			messageObject.setStatus(false);
+		}
+		return messageObject;
+	}
+
+	// 获取任务领取状况信息
+	@RequestMapping(value = "/dataReoprtedMain", method = RequestMethod.GET, produces = "application/json; charset=utf-8")
+	public @ResponseBody String getdataReoprtedMain(ServletRequest request,Pageable pageable) {
+		Map<String, Object> searchParams = Servlets.getParametersStartingWith(request, "search_");
+		objectMapper.addMixInAnnotations(DataReoprtedMain.class,DataReoprtedMainMixin.BasicInfo.class);
+		Page<DataReoprtedMain> page = dataReoprtedMainManager.getDataReoprtedMain(searchParams, pageable);
+		try {
+			return objectMapper.writeValueAsString(page);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	// 检查任务是否被领取（暂时废弃）
+	@RequestMapping(value = "/dataReoprtedMain/existence", params = "taskMainId", method = RequestMethod.GET)
+	@ResponseBody
+	public MessageObject dataReoprtedMainExistence(@RequestParam String taskMainId, ModelMap model) {
+		MessageObject messageObject = new MessageObject();
+		String status = dataReoprtedMainManager.isExistence(taskMainId);
+		if (status == null) {
+			messageObject.setMessage("请您先领取任务!");
+			messageObject.setStatus(true);
+		} else {
+			messageObject.setMessage("已领取任务!");
+			messageObject.setStatus(false);
+		}
+		return messageObject;
+	}
+
+	//采集人员：点击“我的任务”
+		@MethodRemark(remark = "访问 我的任务")
+		@RequestMapping(value = "/dataReoprtedMain/myTask", method = RequestMethod.GET)
+	public String myTaskIndex(HttpServletRequest request, ModelMap model,Pageable pageable) {
+		return "/collect/dataReoprtedMain/myTask";
+	}
+	
+	//采集人员：点击“我的任务”
+	@MethodRemark(remark = "访问 我的任务")
+	@RequestMapping(value = "/dataReoprtedMain/myTask/list",method=RequestMethod.GET, produces="application/json; charset=utf-8")
+	public  @ResponseBody String myTaskList(HttpServletRequest request, ModelMap model,Pageable pageable) {
+		Map<String, String[]> params=new HashMap<String, String[]>();
+		params.putAll(request.getParameterMap());
+		Page<DataReoprtedMain>  page=dataReoprtedMainManager.getMyCurrentTask(params, pageable);
+		Page<DataReoprtedMain> dataReoprtedMainPage=dataReoprtedMainManager.setDataReoprtedMainEditable(page.getContent(),pageable,page.getTotalPages());
+		//json转换
+		objectMapper.addMixInAnnotations(DataReoprtedMain.class, DataReoprtedMainMixin.BasicInfo.class);
+		try {
+			return objectMapper.writeValueAsString(dataReoprtedMainPage);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	
+	
+	
+	
+	
+}
